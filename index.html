@@ -810,255 +810,164 @@
   </div>
 </div>
 
-<div class="version-tag">v8.0 · PocketBase Sync</div>
+<div class="version-tag">v9.0 · Supabase Sync</div>
 
-<!-- PocketBase JS SDK (CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.3/dist/pocketbase.umd.js"></script>
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <script>
 // ════════════════════════════════════════════════════════
-// POCKETBASE CONFIG
-// fly.io deploy হলে এই URL আপনার app-এর URL দিয়ে replace করুন
+// SUPABASE CONFIG — supabase.com → Project Settings → API
 // ════════════════════════════════════════════════════════
-const PB_URL = window.PB_URL || 'https://bkb-chamber.fly.dev';
+const SUPABASE_URL     = 'https://fmnhutxxxasgulwzohto.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO...';
 
-const pb = new PocketBase(PB_URL);
-pb.autoCancellation(false);
+const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── today's date key (YYYYMMDD) for daily isolation ──
 function todayKey() {
   const d = new Date();
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
 }
 const DAY = todayKey();
 
-// ── Sync indicator ──
 function setSyncStatus(ok, msg) {
   const el = document.getElementById('sync-indicator');
   if (!el) return;
   el.textContent = ok ? '🟢 Synced' : ('🔴 ' + (msg || 'Offline'));
-  el.style.color = ok ? '#16a34a' : '#dc2626';
+  el.style.color  = ok ? '#16a34a' : '#dc2626';
 }
 
-// ── Helper: get or create the single session record for today ──
+// ── get or create today's session row ──
 let _sessionId = null;
-
-async function getSessionId() {
+async function getSession() {
   if (_sessionId) return _sessionId;
-  try {
-    // Try to find today's session
-    const res = await pb.collection('sessions').getFirstListItem(`day="${DAY}"`);
-    _sessionId = res.id;
-    return _sessionId;
-  } catch(e) {
-    // Not found — create it
-    try {
-      const rec = await pb.collection('sessions').create({
-        day: DAY,
-        patients: JSON.stringify([]),
-        nextToken: 1,
-        doctorStatus: 'arriving',
-        consultTs: JSON.stringify({}),
-        refMeta: JSON.stringify([]),
-      });
-      _sessionId = rec.id;
-      return _sessionId;
-    } catch(err) {
-      console.error('Session create error:', err);
-      setSyncStatus(false, 'DB Error');
-      return null;
-    }
-  }
+  const { data, error } = await _supa.from('sessions').select('id').eq('day', DAY).single();
+  if (data) { _sessionId = data.id; return _sessionId; }
+  const { data: ins } = await _supa.from('sessions').insert({
+    day: DAY, patients: [], next_token: 1,
+    doctor_status: 'arriving', consult_ts: {}, ref_meta: []
+  }).select('id').single();
+  if (ins) { _sessionId = ins.id; return _sessionId; }
+  return null;
 }
 
-// ── Load initial state from PocketBase ──
-async function pbLoadState() {
+// ── load state ──
+async function supaLoadState() {
+  setSyncStatus(false, 'Connecting...');
   try {
-    const sid = await getSessionId();
-    if (!sid) return;
-    const rec = await pb.collection('sessions').getOne(sid);
+    const sid = await getSession();
+    const { data } = await _supa.from('sessions').select('*').eq('id', sid).single();
+    if (!data) return;
 
-    // Patients
-    const pArr = JSON.parse(rec.patients || '[]');
     patients.length = 0;
-    pArr.forEach(p => { if (p) patients.push(p); });
-
-    // nextToken
-    if (rec.nextToken > nextToken) nextToken = rec.nextToken;
-
-    // doctorStatus
-    if (rec.doctorStatus && rec.doctorStatus !== doctorStatus) {
-      doctorStatus = rec.doctorStatus;
+    (data.patients || []).forEach(p => { if(p) patients.push(p); });
+    if (data.next_token > nextToken) nextToken = data.next_token;
+    if (data.doctor_status && data.doctor_status !== doctorStatus) {
+      doctorStatus = data.doctor_status;
       const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
       const pill = document.getElementById('doctor-status-pill');
-      if (pill) {
-        pill.className = `doctor-status-pill ${ds.cls}`;
-        const txt = document.getElementById('doc-status-text');
-        if (txt) txt.textContent = ds.label;
-      }
+      if (pill) { pill.className = 'doctor-status-pill ' + ds.cls; }
+      const txt = document.getElementById('doc-status-text');
+      if (txt) txt.textContent = ds.label;
     }
-
-    // consultTs
-    const cTs = JSON.parse(rec.consultTs || '{}');
-    Object.assign(consultStartTimestamps, cTs);
-
-    // refMeta
-    const refs = JSON.parse(rec.refMeta || '[]');
-    refs.forEach(rem => {
+    Object.assign(consultStartTimestamps, data.consult_ts || {});
+    (data.ref_meta || []).forEach(rem => {
       if (!rem) return;
-      const local = patientReferences.find(r => r.id === rem.id);
-      if (!local) patientReferences.unshift({ ...rem, fileDataUrl: null });
+      if (!patientReferences.find(r => r.id === rem.id))
+        patientReferences.unshift({...rem, fileDataUrl: null});
     });
-
-    updateNavBadges();
-    render();
-    setSyncStatus(true);
-    console.log('✅ PocketBase state loaded for', DAY);
-  } catch(err) {
-    console.error('pbLoadState error:', err);
-    setSyncStatus(false, 'Load failed');
-  }
+    updateNavBadges(); render(); setSyncStatus(true);
+  } catch(e) { setSyncStatus(false, 'Load failed'); console.error(e); }
 }
 
-// ── Realtime subscription — any change from other devices ──
-async function pbSubscribe() {
-  const sid = await getSessionId();
+// ── realtime subscription ──
+async function supaSubscribe() {
+  const sid = await getSession();
+  _supa.channel('sessions-changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: 'id=eq.' + sid },
+      payload => {
+        const d = payload.new;
+        patients.length = 0;
+        (d.patients || []).forEach(p => { if(p) patients.push(p); });
+        if (d.next_token > nextToken) nextToken = d.next_token;
+        if (d.doctor_status && d.doctor_status !== doctorStatus) {
+          doctorStatus = d.doctor_status;
+          const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+          const pill = document.getElementById('doctor-status-pill');
+          if (pill) { pill.className = 'doctor-status-pill ' + ds.cls; }
+          const txt = document.getElementById('doc-status-text');
+          if (txt) txt.textContent = ds.label;
+        }
+        Object.assign(consultStartTimestamps, d.consult_ts || {});
+        updateNavBadges();
+        if (['queue','doctor','display','references'].includes(currentTab)) render();
+        setSyncStatus(true);
+      })
+    .subscribe();
+}
+
+// ── debounced write ──
+let _wt = null;
+function scheduleWrite() { clearTimeout(_wt); _wt = setTimeout(doWrite, 500); }
+
+async function doWrite() {
+  const sid = await getSession();
   if (!sid) return;
+  const { error } = await _supa.from('sessions').update({
+    patients:      patients,
+    next_token:    nextToken,
+    doctor_status: doctorStatus,
+    consult_ts:    consultStartTimestamps,
+    ref_meta:      patientReferences.map(r => ({
+      id: r.id, patientToken: r.patientToken, patientName: r.patientName,
+      category: r.category, notes: r.notes, fileName: r.fileName,
+      fileType: r.fileType, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy,
+    })),
+  }).eq('id', sid);
+  if (error) { setSyncStatus(false, 'Write failed'); console.error(error); }
+  else setSyncStatus(true);
+}
 
-  pb.collection('sessions').subscribe(sid, function(e) {
-    const rec = e.record;
-    if (!rec) return;
-
-    // Patients
-    try {
-      const pArr = JSON.parse(rec.patients || '[]');
-      patients.length = 0;
-      pArr.forEach(p => { if (p) patients.push(p); });
-    } catch(ex) {}
-
-    // nextToken
-    if (rec.nextToken > nextToken) nextToken = rec.nextToken;
-
-    // doctorStatus
-    if (rec.doctorStatus && rec.doctorStatus !== doctorStatus) {
-      doctorStatus = rec.doctorStatus;
-      const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
-      const pill = document.getElementById('doctor-status-pill');
-      if (pill) {
-        pill.className = `doctor-status-pill ${ds.cls}`;
-        const txt = document.getElementById('doc-status-text');
-        if (txt) txt.textContent = ds.label;
-      }
-    }
-
-    // consultTs
-    try {
-      const cTs = JSON.parse(rec.consultTs || '{}');
-      Object.assign(consultStartTimestamps, cTs);
-    } catch(ex) {}
-
-    // refMeta
-    try {
-      const refs = JSON.parse(rec.refMeta || '[]');
-      refs.forEach(rem => {
-        if (!rem) return;
-        const local = patientReferences.find(r => r.id === rem.id);
-        if (!local) patientReferences.unshift({ ...rem, fileDataUrl: null });
-      });
-    } catch(ex) {}
-
-    updateNavBadges();
-    if (['queue','doctor','display','references'].includes(currentTab)) render();
-    setSyncStatus(true);
+// ── audit log ──
+async function supaLogAudit(entry) {
+  await _supa.from('audit_logs').insert({
+    day: DAY, type: entry.type, icon: entry.icon,
+    action: entry.action, detail: entry.detail,
+    by: entry.by, reason: entry.reason || '',
+    time: entry.time, ts: entry._ts,
   });
 }
 
-// ── Debounced write to PocketBase ──
-let _writeTimer = null;
-function schedulePbWrite() {
-  clearTimeout(_writeTimer);
-  _writeTimer = setTimeout(doPbWrite, 400); // 400ms debounce
+async function supaLoadAudit() {
+  const { data } = await _supa.from('audit_logs')
+    .select('*').eq('day', DAY).order('ts', { ascending: false });
+  auditLog.length = 0;
+  (data || []).forEach(r => auditLog.push({
+    type: r.type, icon: r.icon, action: r.action,
+    detail: r.detail, by: r.by, reason: r.reason,
+    time: r.time, _ts: r.ts,
+  }));
 }
 
-async function doPbWrite() {
-  const sid = await getSessionId();
-  if (!sid) return;
-  try {
-    await pb.collection('sessions').update(sid, {
-      patients:     JSON.stringify(patients),
-      nextToken:    nextToken,
-      doctorStatus: doctorStatus,
-      consultTs:    JSON.stringify(consultStartTimestamps),
-      refMeta:      JSON.stringify(patientReferences.map(r => ({
-        id: r.id, patientToken: r.patientToken, patientName: r.patientName,
-        category: r.category, notes: r.notes, fileName: r.fileName,
-        fileType: r.fileType, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy,
-      }))),
-    });
-    setSyncStatus(true);
-  } catch(err) {
-    console.error('PB write error:', err);
-    setSyncStatus(false, 'Write failed');
-  }
-}
+// ── expose sync helpers ──
+window.fbSyncPatients     = scheduleWrite;
+window.fbSyncDoctorStatus = scheduleWrite;
+window.fbSyncConsultTs    = scheduleWrite;
+window.fbSyncRefMeta      = scheduleWrite;
+window.fbLogAction        = supaLogAudit;
 
-// ── Audit log — separate collection for immutable log ──
-async function pbWriteAudit(entry) {
-  try {
-    await pb.collection('audit_logs').create({
-      day: DAY,
-      type: entry.type,
-      icon: entry.icon,
-      action: entry.action,
-      detail: entry.detail,
-      by: entry.by,
-      reason: entry.reason || '',
-      time: entry.time,
-      ts: entry._ts,
-    });
-  } catch(err) {
-    console.error('Audit write error:', err);
-  }
-}
-
-// ── Load audit from PocketBase on audit tab ──
-async function pbLoadAudit() {
-  try {
-    const res = await pb.collection('audit_logs').getFullList({
-      filter: `day="${DAY}"`,
-      sort: '-ts',
-    });
-    auditLog.length = 0;
-    res.forEach(r => auditLog.push({
-      type: r.type, icon: r.icon, action: r.action,
-      detail: r.detail, by: r.by, reason: r.reason,
-      time: r.time, _ts: r.ts,
-    }));
-  } catch(err) {
-    console.error('Audit load error:', err);
-  }
-}
-
-// ── Expose sync helpers (same interface as Firebase version) ──
-window.fbSyncPatients     = schedulePbWrite;
-window.fbSyncDoctorStatus = schedulePbWrite;
-window.fbSyncConsultTs    = schedulePbWrite;
-window.fbSyncRefMeta      = schedulePbWrite;
-window.fbLogAction        = pbWriteAudit;
-
-// ── Override switchTab to load audit from PB when tab opened ──
+// ── audit tab override ──
 const _origSwitchTab = window.switchTab;
 window.switchTab = async function(tab) {
-  if (tab === 'audit') await pbLoadAudit();
+  if (tab === 'audit') await supaLoadAudit();
   if (typeof _origSwitchTab === 'function') _origSwitchTab(tab);
 };
 
-// ── Bootstrap ──
+// ── bootstrap ──
 (async () => {
-  setSyncStatus(false, 'Connecting...');
-  await pbLoadState();
-  await pbSubscribe();
-  console.log('✅ PocketBase realtime active');
+  await supaLoadState();
+  await supaSubscribe();
+  console.log('✅ Supabase realtime active for', DAY);
 })();
 </script>
 
