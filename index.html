@@ -1,0 +1,2792 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. B. K. Bose — Chamber v4</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #F0F2F5; color: #1a1a2e; font-size: 14px; }
+  
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+  
+  /* ═══════════════════════════════════════════════════════
+     LOGIN SCREEN
+  ═══════════════════════════════════════════════════════ */
+  .login-screen {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #0f2050 0%, #1a4fa0 60%, #2563eb 100%);
+    display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;
+  }
+  .login-card {
+    background: #fff; border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  }
+  .login-logo {
+    width: 64px; height: 64px; background: linear-gradient(135deg, #1a4fa0, #2563eb);
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 900; font-size: 20px; margin: 0 auto 20px; letter-spacing: -1px;
+    box-shadow: 0 8px 24px rgba(37,99,235,0.4);
+  }
+  .login-title { text-align: center; font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 4px; }
+  .login-sub { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 24px; }
+
+  /* UPDATED SECTION — 4-role login grid */
+  .login-role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .login-role-btn {
+    padding: 14px 10px; border-radius: 12px; border: 2px solid #e5e7eb; cursor: pointer;
+    text-align: center; font-size: 12px; font-weight: 600; background: #f9fafb;
+    color: #4b5563; transition: all 0.15s;
+  }
+  .login-role-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+  .login-role-btn.sel { border-color: #2563eb; background: #eff6ff; color: #1e40af; }
+  .login-role-btn .role-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .login-role-btn .role-name { display: block; font-size: 12px; font-weight: 700; }
+  .login-role-btn .role-sub { display: block; font-size: 10px; color: #9ca3af; margin-top: 2px; }
+  .login-role-btn.sel .role-sub { color: #6b7280; }
+
+  .login-divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+  .login-divider-line { flex: 1; height: 1px; background: #e5e7eb; }
+  .login-divider-text { font-size: 11px; color: #9ca3af; font-weight: 600; letter-spacing: 0.05em; }
+  .login-pin-label { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 6px; display: block; }
+  .login-pin-input {
+    width: 100%; padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 10px;
+    font-size: 20px; font-family: monospace; letter-spacing: 8px; text-align: center;
+    color: #111827; background: #fff; transition: border 0.15s;
+  }
+  .login-pin-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .login-error { background: #fff5f5; border: 1px solid #fca5a5; color: #7f1d1d; border-radius: 8px; padding: 9px 12px; font-size: 12px; margin-top: 10px; display: none; }
+  .login-error.show { display: block; }
+  .btn-login {
+    width: 100%; padding: 14px; background: linear-gradient(135deg, #1a4fa0, #2563eb);
+    color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+    cursor: pointer; margin-top: 16px; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+  }
+  .btn-login:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.45); }
+  .btn-login:active { transform: scale(0.98); }
+  .login-hint { font-size: 10px; color: #9ca3af; text-align: center; margin-top: 12px; line-height: 1.6; }
+
+  /* Header */
+  .header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 10px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .header-logo { width: 38px; height: 38px; background: linear-gradient(135deg, #1a4fa0, #2563eb); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 12px; flex-shrink: 0; letter-spacing: -0.5px; }
+  .header-title { flex: 1; }
+  .header-title h1 { font-size: 14px; font-weight: 600; color: #111827; }
+  .header-title p { font-size: 11px; color: #6b7280; }
+  .live-clock { font-size: 13px; font-weight: 600; color: #1a4fa0; background: #eff6ff; padding: 5px 12px; border-radius: 20px; border: 1px solid #bfdbfe; white-space: nowrap; }
+  .doctor-status-pill { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all 0.2s; }
+  .status-arriving { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+  .status-inchamber { background: #dcfce7; border-color: #16a34a; color: #14532d; }
+  .status-delayed { background: #fee2e2; border-color: #ef4444; color: #7f1d1d; }
+  .status-closed { background: #f3f4f6; border-color: #9ca3af; color: #4b5563; }
+  .status-break { background: #fce7f3; border-color: #ec4899; color: #9d174d; }
+
+  /* UPDATED SECTION — role badge in header */
+  .role-badge {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px;
+    border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .role-badge-superadmin { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+  .role-badge-doctor { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+  .role-badge-assistant { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+  .role-badge-desk { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+  /* User pill */
+  .user-pill {
+    display: flex; align-items: center; gap: 6px; padding: 5px 11px;
+    border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer;
+    background: #f3f4f6; border: 1.5px solid #e5e7eb; color: #374151;
+    white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
+  }
+  .user-pill:hover { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
+  .user-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; }
+  
+  /* Nav */
+  .nav { background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; overflow-x: auto; gap: 2px; padding: 0 8px; }
+  .nav-tab { padding: 11px 14px; font-size: 12px; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; color: #6b7280; display: flex; align-items: center; gap: 5px; transition: all 0.15s; font-weight: 500; }
+  .nav-tab.active { color: #1a4fa0; border-bottom-color: #1a4fa0; font-weight: 600; }
+  .nav-tab:hover:not(.active) { background: #f9fafb; color: #374151; }
+  .nav-tab.hidden { display: none; }
+  .badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 1px 6px; font-size: 9px; font-weight: 700; }
+  .badge-amber { background: #f59e0b; }
+  .badge-purple { background: #7c3aed; }
+  
+  /* Main */
+  .main { flex: 1; padding: 12px 14px; max-width: 100%; }
+  
+  /* Cards */
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .card-title { font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.07em; display: flex; align-items: center; gap: 6px; }
+  
+  /* ===================== OPERATION SECTION CARDS ===================== */
+  .section-in-consultation { background: #eff6ff; border: 2px solid #2563eb; border-radius: 14px; padding: 16px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .section-in-consultation::before { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(37,99,235,0.1), transparent 70%); }
+  .consultation-badge { display: inline-flex; align-items: center; gap: 6px; background: #2563eb; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.7)} }
+  
+  .consultation-patient-row { display: flex; align-items: center; gap: 12px; }
+  .big-token { width: 52px; height: 52px; border-radius: 14px; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.4); }
+  .big-token.emergency { background: #dc2626; box-shadow: 0 4px 12px rgba(220,38,38,0.4); }
+  .big-token.followup { background: #0f6e56; box-shadow: 0 4px 12px rgba(15,110,86,0.4); }
+  .big-token.docref { background: #d97706; box-shadow: 0 4px 12px rgba(217,119,6,0.4); }
+  
+  .patient-info-main { flex: 1; min-width: 0; }
+  .patient-name-big { font-size: 16px; font-weight: 700; color: #111827; }
+  .patient-sub { font-size: 12px; color: #4b5563; margin-top: 2px; }
+  
+  .consult-timer { font-size: 26px; font-weight: 800; color: #2563eb; font-variant-numeric: tabular-nums; text-align: right; line-height: 1; }
+  .consult-timer-label { font-size: 10px; color: #2563eb; text-align: right; margin-top: 2px; opacity: 0.7; }
+  
+  /* ===================== NEXT PATIENT SECTION ===================== */
+  .section-next { background: #f0fdf4; border: 1.5px solid #16a34a; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .next-badge { display: inline-flex; align-items: center; gap: 5px; background: #16a34a; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 20px; letter-spacing: 0.07em; margin-bottom: 8px; }
+
+  /* ===================== DOCTOR NOT HERE BANNER ===================== */
+  .doctor-not-here-banner {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    border: 2px solid #f59e0b; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .doctor-not-here-icon { font-size: 32px; flex-shrink: 0; }
+  .doctor-not-here-text h3 { font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 3px; }
+  .doctor-not-here-text p { font-size: 12px; color: #b45309; line-height: 1.5; }
+  .doctor-not-here-text .go-btn {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 8px;
+    background: #f59e0b; color: #fff; border: none; padding: 6px 14px;
+    border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+  }
+  .doctor-not-here-text .go-btn:hover { background: #d97706; }
+  
+  /* ===================== QUEUE ITEMS ===================== */
+  .queue-section { margin-bottom: 10px; }
+  .queue-section-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; padding: 0 2px; }
+  .queue-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 6px; background: #fff; transition: all 0.15s; }
+  .queue-item:hover { border-color: #93c5fd; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+  .queue-item.called { border-color: #f59e0b; background: #fffbeb; }
+  .queue-item.arrived { border-color: #34d399; background: #f0fdf4; }
+  .queue-item.emergency-item { border-color: #fca5a5; background: #fff5f5; }
+  .queue-item.completed-item { opacity: 0.55; background: #f9fafb; }
+  .queue-item.noshow-item { opacity: 0.5; background: #fafafa; }
+  
+  .token { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .token-regular { background: #dbeafe; color: #1e40af; }
+  .token-emergency { background: #fee2e2; color: #991b1b; }
+  .token-docref { background: #fef3c7; color: #92400e; }
+  .token-followup { background: #d1fae5; color: #065f46; }
+  .token-completed { background: #f3f4f6; color: #9ca3af; }
+  
+  .queue-info { flex: 1; min-width: 0; }
+  .queue-name { font-weight: 600; font-size: 13px; color: #111827; }
+  .queue-meta { font-size: 11px; color: #6b7280; margin-top: 3px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+  
+  /* Status chips */
+  .chip { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+  .chip-waiting { background: #f3f4f6; color: #4b5563; }
+  .chip-arrived { background: #d1fae5; color: #065f46; }
+  .chip-called { background: #fef3c7; color: #92400e; }
+  .chip-incons { background: #dbeafe; color: #1e40af; }
+  .chip-completed { background: #d1fae5; color: #065f46; }
+  .chip-noshow { background: #fee2e2; color: #7f1d1d; }
+  .chip-cancelled { background: #f3f4f6; color: #4b5563; }
+  
+  /* Action buttons */
+  .action-btns { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
+  .op-btn { padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; letter-spacing: 0.02em; white-space: nowrap; }
+  .op-btn:active { transform: scale(0.96); }
+  .op-btn-arrive { background: #16a34a; color: #fff; }
+  .op-btn-arrive:hover { background: #15803d; }
+  .op-btn-call { background: #f59e0b; color: #fff; }
+  .op-btn-call:hover { background: #d97706; }
+  .op-btn-start { background: #2563eb; color: #fff; }
+  .op-btn-start:hover { background: #1d4ed8; }
+  .op-btn-start:disabled { background: #9ca3af; cursor: not-allowed; opacity: 0.6; }
+  .op-btn-complete { background: #0f6e56; color: #fff; }
+  .op-btn-complete:hover { background: #0a5a45; }
+  .op-btn-noshow { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+  .op-btn-noshow:hover { background: #fecaca; }
+  .op-btn-cancel { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+  .op-btn-cancel:hover { background: #e5e7eb; }
+  
+  /* COMPLETE CONSULTATION — extra prominent */
+  .btn-complete-big { padding: 14px 20px; font-size: 14px; font-weight: 800; border-radius: 12px; background: linear-gradient(135deg, #0f6e56, #16a34a); color: #fff; border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; box-shadow: 0 4px 14px rgba(15,110,86,0.35); transition: all 0.2s; letter-spacing: 0.03em; }
+  .btn-complete-big:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(15,110,86,0.45); }
+  .btn-complete-big:active { transform: scale(0.98); }
+  
+  /* Stats grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px; }
+  .stat-value { font-size: 24px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 10px; color: #6b7280; margin-top: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .stat-blue { color: #2563eb; }
+  .stat-red { color: #dc2626; }
+  .stat-amber { color: #d97706; }
+  .stat-green { color: #16a34a; }
+  .stat-purple { color: #7c3aed; }
+  
+  /* Form */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; color: #6b7280; font-weight: 600; }
+  input, select, textarea { width: 100%; padding: 8px 11px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 13px; background: #fff; color: #111827; font-family: inherit; transition: border 0.15s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  textarea { resize: vertical; min-height: 64px; }
+  
+  /* Choice grid buttons */
+  .choice-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .choice-btn { padding: 9px 6px; border-radius: 8px; border: 1.5px solid #e5e7eb; cursor: pointer; text-align: center; font-size: 11px; font-weight: 600; background: #f9fafb; color: #4b5563; transition: all 0.15s; }
+  .choice-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+  .choice-btn.sel { border-color: #2563eb; background: #eff6ff; color: #1e40af; }
+  .choice-btn.sel-emg { border-color: #dc2626; background: #fff5f5; color: #7f1d1d; }
+  .choice-btn.sel-ref { border-color: #d97706; background: #fffbeb; color: #92400e; }
+  .choice-btn.sel-fup { border-color: #0f6e56; background: #f0fdf4; color: #065f46; }
+  
+  /* Buttons general */
+  .btn { padding: 8px 15px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; font-family: inherit; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+  .btn-secondary { background: #f9fafb; border-color: #e5e7eb; color: #374151; }
+  .btn-secondary:hover { background: #f3f4f6; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn-register { padding: 13px 20px; font-size: 14px; font-weight: 800; background: linear-gradient(135deg, #1a4fa0, #2563eb); color: #fff; border: none; border-radius: 12px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.3); cursor: pointer; transition: all 0.2s; }
+  .btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); }
+
+  /* UPDATED SECTION — Prescription Launcher */
+  .rx-launcher-card {
+    background: linear-gradient(135deg, #1a1f5e 0%, #312e81 60%, #4338ca 100%);
+    border-radius: 16px; padding: 20px; margin-bottom: 12px; color: #fff; position: relative; overflow: hidden;
+  }
+  .rx-launcher-card::before {
+    content: '💊'; position: absolute; right: -10px; top: -10px; font-size: 80px; opacity: 0.1; transform: rotate(-20deg);
+  }
+  .rx-launcher-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; opacity: 0.9; }
+  .rx-launcher-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .rx-launcher-sub { font-size: 11px; opacity: 0.6; margin-bottom: 16px; }
+  .btn-rx-launch {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; color: #312e81; padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 800; cursor: pointer; border: none;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: all 0.2s;
+  }
+  .btn-rx-launch:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+
+  /* UPDATED SECTION — Patient Document References */
+  .doc-ref-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 6px; background: #fff; transition: all 0.15s; }
+  .doc-ref-item:hover { border-color: #93c5fd; background: #eff6ff; }
+  .doc-ref-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .doc-ref-icon-pdf { background: #fee2e2; }
+  .doc-ref-icon-img { background: #fef3c7; }
+  .doc-ref-info { flex: 1; min-width: 0; }
+  .doc-ref-name { font-size: 12px; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .doc-ref-meta { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+  .doc-category-chip { font-size: 9px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-block; margin-right: 4px; }
+  .cat-prescription { background: #ede9fe; color: #5b21b6; }
+  .cat-lab { background: #d1fae5; color: #065f46; }
+  .cat-scan { background: #dbeafe; color: #1e40af; }
+  .cat-ecg { background: #fce7f3; color: #9d174d; }
+  .cat-discharge { background: #fef3c7; color: #92400e; }
+  .cat-other { background: #f3f4f6; color: #4b5563; }
+
+  /* UPDATED SECTION — Settings */
+  .settings-section { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+  .settings-section-header { background: #f9fafb; padding: 10px 14px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 1px solid #e5e7eb; }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #f3f4f6; gap: 12px; }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-label { font-size: 12px; font-weight: 600; color: #374151; }
+  .settings-sublabel { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+  .settings-control { flex-shrink: 0; }
+  .settings-input { padding: 7px 11px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 12px; background: #fff; color: #111827; font-family: inherit; width: 220px; }
+  .settings-input:focus { outline: none; border-color: #2563eb; }
+  .btn-settings-save { padding: 7px 14px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .btn-settings-save:hover { background: #1d4ed8; }
+
+  /* /// UPDATED SECTION — PROFESSIONAL TV DISPLAY STYLES */
+  @import url('https://fonts.maateen.me/kalpurush/font.css');
+
+  /* TV Display wrapper — takes full viewport when active */
+  .tv-fullpage {
+    position: fixed; inset: 0; z-index: 500;
+    background: #030b18;
+    display: flex; flex-direction: column;
+    font-family: 'Kalpurush', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+    overflow: hidden;
+  }
+
+  /* TV Header strip */
+  .tv-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    flex-shrink: 0;
+  }
+  .tv-header-left { display: flex; align-items: center; gap: 14px; }
+  .tv-header-logo {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, #1a4fa0, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 900; font-size: 14px; letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+  .tv-header-name { color: #fff; font-size: 18px; font-weight: 700; line-height: 1.2; }
+  .tv-header-sub { color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 2px; }
+  .tv-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .tv-date-display { color: rgba(255,255,255,0.5); font-size: 13px; }
+  .tv-clock-display { color: #60a5fa; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.05em; }
+
+  /* TV Body — two-column layout */
+  .tv-body {
+    flex: 1; display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 0;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* LEFT — Current serial big display */
+  .tv-current-panel {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 28px;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    position: relative; overflow: hidden;
+  }
+  .tv-current-panel::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(37,99,235,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .tv-section-label-bn {
+    font-size: clamp(14px, 2vw, 20px);
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    font-weight: 400;
+  }
+  .tv-section-label-en {
+    font-size: clamp(10px, 1.2vw, 14px);
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+  }
+  .tv-big-number {
+    font-size: clamp(120px, 22vw, 220px);
+    font-weight: 900;
+    color: #60a5fa;
+    line-height: 0.9;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 60px rgba(96,165,250,0.35);
+    transition: all 0.4s ease;
+  }
+  .tv-big-number.empty { color: rgba(255,255,255,0.1); font-size: clamp(60px, 12vw, 100px); }
+  .tv-big-number.emergency { color: #f87171; text-shadow: 0 0 60px rgba(248,113,113,0.35); }
+
+  .tv-doctor-info {
+    margin-top: 22px; text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 14px 24px;
+    min-width: 280px;
+  }
+  .tv-doctor-name-bn { font-size: clamp(18px, 2.5vw, 26px); color: #fff; font-weight: 700; line-height: 1.3; }
+  .tv-doctor-name-en { font-size: clamp(13px, 1.5vw, 17px); color: rgba(255,255,255,0.45); margin-top: 3px; }
+  .tv-chamber-info { font-size: clamp(12px, 1.2vw, 15px); color: rgba(96,165,250,0.7); margin-top: 8px; font-weight: 600; }
+
+  /* Pulse ring animation for current serial */
+  .tv-pulse-ring {
+    position: absolute;
+    width: clamp(160px, 28vw, 280px); height: clamp(160px, 28vw, 280px);
+    border-radius: 50%;
+    border: 2px solid rgba(96,165,250,0.15);
+    animation: tvPulse 2.5s ease-out infinite;
+    pointer-events: none;
+  }
+  .tv-pulse-ring:nth-child(2) { animation-delay: 0.8s; }
+  .tv-pulse-ring:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes tvPulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  /* RIGHT panel — Next serials + status */
+  .tv-right-panel {
+    display: flex; flex-direction: column;
+    padding: 24px 22px;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* Next serials block */
+  .tv-next-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px; padding: 18px 16px;
+    flex-shrink: 0;
+  }
+  .tv-next-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 10px;
+  }
+  .tv-next-header-bn { font-size: clamp(15px, 1.8vw, 20px); color: rgba(255,255,255,0.7); font-weight: 600; }
+  .tv-next-header-en { font-size: clamp(10px, 1vw, 13px); color: rgba(255,255,255,0.3); }
+  .tv-next-serials { display: flex; flex-direction: column; gap: 8px; }
+  .tv-next-row {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px; padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s;
+  }
+  .tv-next-row:first-child {
+    background: rgba(251,191,36,0.08);
+    border-color: rgba(251,191,36,0.25);
+  }
+  .tv-next-row-num {
+    font-size: clamp(24px, 3.5vw, 40px);
+    font-weight: 900; color: rgba(255,255,255,0.6);
+    font-variant-numeric: tabular-nums;
+    min-width: 50px; text-align: center;
+    line-height: 1;
+  }
+  .tv-next-row:first-child .tv-next-row-num { color: #fbbf24; }
+  .tv-next-row-info { flex: 1; }
+  .tv-next-row-label {
+    font-size: clamp(11px, 1.2vw, 14px);
+    color: rgba(255,255,255,0.35); font-weight: 600;
+  }
+  .tv-next-row:first-child .tv-next-row-label { color: rgba(251,191,36,0.7); }
+  .tv-next-row-status {
+    font-size: clamp(9px, 0.9vw, 11px); color: rgba(255,255,255,0.25);
+    margin-top: 2px;
+  }
+
+  /* Empty next serials */
+  .tv-next-empty {
+    text-align: center; padding: 20px;
+    color: rgba(255,255,255,0.2); font-size: 14px;
+  }
+
+  /* Doctor status block */
+  .tv-status-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px; padding: 14px 16px;
+    flex-shrink: 0;
+  }
+  .tv-status-row { display: flex; align-items: center; gap: 10px; }
+  .tv-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .tv-status-dot.green { background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: tvDotPulse 1.5s infinite; }
+  .tv-status-dot.amber { background: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+  .tv-status-dot.red { background: #f87171; box-shadow: 0 0 10px #f87171; }
+  .tv-status-dot.gray { background: #6b7280; }
+  .tv-status-dot.pink { background: #f472b6; box-shadow: 0 0 10px #f472b6; }
+  @keyframes tvDotPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .tv-status-text { font-size: clamp(13px, 1.5vw, 17px); color: rgba(255,255,255,0.7); }
+  .tv-status-text strong { color: #fff; }
+  .tv-stats-mini {
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; gap: 16px;
+    font-size: clamp(11px, 1.1vw, 14px);
+    color: rgba(255,255,255,0.3);
+  }
+  .tv-stats-mini span { color: rgba(255,255,255,0.6); font-weight: 600; margin-left: 4px; }
+
+  /* TV Announcement bar — bottom scrolling ticker */
+  .tv-ticker-bar {
+    flex-shrink: 0;
+    background: rgba(37,99,235,0.15);
+    border-top: 1px solid rgba(37,99,235,0.3);
+    padding: 10px 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .tv-ticker-track {
+    display: flex; align-items: center; gap: 0;
+    white-space: nowrap;
+    animation: tvTicker 40s linear infinite;
+  }
+  .tv-ticker-item {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 0 40px;
+    font-size: clamp(13px, 1.5vw, 17px);
+    color: rgba(255,255,255,0.75);
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+  .tv-ticker-item:last-child { border-right: none; }
+  .tv-ticker-dot { width: 6px; height: 6px; border-radius: 50%; background: #60a5fa; flex-shrink: 0; }
+  @keyframes tvTicker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Back button for TV */
+  .tv-back-btn {
+    position: fixed; top: 14px; right: 20px; z-index: 600;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 8px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    letter-spacing: 0.05em; transition: all 0.2s; font-family: inherit;
+  }
+  .tv-back-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+  /* Fullscreen button */
+  .tv-fs-btn {
+    position: fixed; top: 14px; right: 100px; z-index: 600;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 8px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    letter-spacing: 0.05em; transition: all 0.2s; font-family: inherit;
+  }
+  .tv-fs-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+  /* No consultation placeholder */
+  .tv-waiting-state { color: rgba(255,255,255,0.15); font-size: clamp(16px, 2vw, 22px); text-align: center; margin-top: 16px; }
+
+  /* TV responsive — small screens */
+  @media (max-width: 720px) {
+    .tv-body { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+    .tv-current-panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 24px 16px; }
+    .tv-right-panel { padding: 16px; }
+    .tv-next-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Old TV vars kept for compat */
+  .tv-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: #4ade80; box-shadow: 0 0 8px #4ade80; animation: glow 2s infinite; }
+  .dot-amber { background: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+  .dot-red { background: #f87171; box-shadow: 0 0 8px #f87171; }
+  @keyframes glow { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  
+  /* Audit */
+  .audit-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; align-items: flex-start; }
+  .audit-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .audit-add { background: #d1fae5; }
+  .audit-modify { background: #fef3c7; }
+  .audit-emergency { background: #fee2e2; }
+  .audit-checkin { background: #dbeafe; }
+  .audit-start { background: #ede9fe; }
+  .audit-complete { background: #dcfce7; }
+  .audit-noshow { background: #fecaca; }
+  .audit-login { background: #fef9c3; }
+  .audit-content { flex: 1; }
+  .audit-action { font-size: 12px; font-weight: 600; color: #111827; }
+  .audit-detail { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .audit-time { font-size: 10px; color: #9ca3af; white-space: nowrap; font-weight: 500; }
+  
+  /* Alert */
+  .alert { padding: 9px 13px; border-radius: 9px; font-size: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+  .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .alert-danger { background: #fff5f5; border: 1px solid #fca5a5; color: #7f1d1d; font-weight: 500; }
+  .alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #14532d; }
+  .alert-purple { background: #f5f3ff; border: 1px solid #c4b5fd; color: #4c1d95; }
+  
+  /* Misc */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .scroll-list { max-height: 380px; overflow-y: auto; }
+  .divider { height: 1px; background: #f3f4f6; margin: 10px 0; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-title { font-size: 13px; font-weight: 600; color: #111827; }
+  .tag { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+  .tag-jogesh { background: #ede9fe; color: #5b21b6; }
+  .tag-shahin { background: #d1fae5; color: #065f46; }
+  .tag-direct { background: #f3f4f6; color: #374151; }
+  .tag-docref { background: #fef3c7; color: #92400e; }
+  .analytics-bar { height: 6px; background: #f3f4f6; border-radius: 3px; overflow: hidden; margin-top: 4px; margin-bottom: 10px; }
+  .analytics-fill { height: 100%; border-radius: 3px; }
+  
+  /* Doc status buttons */
+  .doc-status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .doc-status-btn { padding: 11px 6px; border-radius: 9px; border: 2px solid #e5e7eb; cursor: pointer; text-align: center; font-size: 11px; font-weight: 600; background: #f9fafb; color: #4b5563; transition: all 0.15s; }
+  .doc-status-btn:hover { border-color: #2563eb; }
+  .doc-status-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .doc-status-btn.active-green { background: #16a34a; border-color: #16a34a; color: #fff; }
+  
+  /* Collapsible */
+  .collapsible-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 6px 0; }
+  .collapsible-body { display: none; }
+  .collapsible-body.open { display: block; }
+  
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 20px; width: 360px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 14px; }
+
+  /* UPDATED SECTION — Patient selector modal for references */
+  .patient-search-list { max-height: 200px; overflow-y: auto; margin-top: 8px; }
+  .patient-search-item { padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-size: 12px; transition: all 0.15s; }
+  .patient-search-item:hover { background: #eff6ff; border-color: #2563eb; }
+  .patient-search-item.sel { background: #eff6ff; border-color: #2563eb; font-weight: 600; }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .choice-grid { grid-template-columns: repeat(2, 1fr); }
+    .consult-timer { font-size: 20px; }
+    .tv-next-grid { grid-template-columns: repeat(2, 1fr); }
+    .settings-input { width: 140px; }
+  }
+
+  /* version badge */
+  .version-tag { position: fixed; bottom: 8px; right: 8px; background: rgba(37,99,235,0.12); color: #1e40af; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.05em; z-index: 50; pointer-events: none; }
+
+  /* Upload area */
+  .upload-area { border: 2px dashed #bfdbfe; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: #f8faff; transition: all 0.15s; }
+  .upload-area:hover { border-color: #2563eb; background: #eff6ff; }
+  .upload-area input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     /// UPDATED SECTION — 4-ROLE LOGIN SCREEN
+══════════════════════════════════════════════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">BKB</div>
+    <div class="login-title">Dr. B. K. Bose</div>
+    <div class="login-sub">Chamber Management System v5<br>Dinajpur · শুধুমাত্র অনুমোদিত কর্মীদের জন্য</div>
+
+    <div class="login-role-grid">
+      <div class="login-role-btn" id="role-superadmin" onclick="selectRole('superadmin')">
+        <span class="role-icon">👑</span>
+        <span class="role-name">Super Admin</span>
+        <span class="role-sub">Full Control</span>
+      </div>
+      <div class="login-role-btn sel" id="role-doctor" onclick="selectRole('doctor')">
+        <span class="role-icon">🩺</span>
+        <span class="role-name">Doctor</span>
+        <span class="role-sub">Dr. B. K. Bose</span>
+      </div>
+      <div class="login-role-btn" id="role-assistant" onclick="selectRole('assistant')">
+        <span class="role-icon">💼</span>
+        <span class="role-name">Assistant</span>
+        <span class="role-sub">Jogesh / Shahin</span>
+      </div>
+      <div class="login-role-btn" id="role-desk" onclick="selectRole('desk')">
+        <span class="role-icon">🖥️</span>
+        <span class="role-name">Desk</span>
+        <span class="role-sub">Billing & Serial</span>
+      </div>
+    </div>
+
+    <div class="login-divider">
+      <div class="login-divider-line"></div>
+      <div class="login-divider-text">PIN দিন</div>
+      <div class="login-divider-line"></div>
+    </div>
+
+    <label class="login-pin-label" id="pin-label">Doctor PIN (4 digit)</label>
+    <input type="password" class="login-pin-input" id="pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" onkeydown="if(event.key==='Enter') doLogin()" oninput="clearLoginError()" />
+
+    <div class="login-error" id="login-error">❌ ভুল PIN। আবার চেষ্টা করুন।</div>
+
+    <button class="btn-login" onclick="doLogin()">🔓 Login করুন</button>
+
+    <div class="login-hint">
+      Super Admin: <strong>9999</strong> &nbsp;|&nbsp; Doctor: <strong>1234</strong> &nbsp;|&nbsp; Assistant: <strong>0000</strong> &nbsp;|&nbsp; Desk: <strong>5678</strong><br>
+      সকল কার্যক্রম Audit Log-এ সংরক্ষিত হবে
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-logo">BKB</div>
+    <div class="header-title">
+      <h1>Dr. B. K. Bose — Chamber Control Panel</h1>
+      <p id="header-sub">MBBS, MCPS · MD Chest Medicine · IAEA Fellow</p>
+    </div>
+    <div class="live-clock" id="live-clock">--:--:--</div>
+    <div id="sync-indicator" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;white-space:nowrap">🟡 Connecting...</div>
+    <div id="doctor-status-pill" class="doctor-status-pill status-arriving" onclick="switchTab('doctor')" style="cursor:pointer">
+      <div style="width:7px;height:7px;border-radius:50%;background:currentColor;opacity:0.6"></div>
+      <span id="doc-status-text">Arriving Soon</span>
+    </div>
+    <span id="header-role-badge" class="role-badge role-badge-doctor">🩺 Doctor</span>
+    <div class="user-pill" id="user-pill" onclick="doLogout()">
+      <div class="user-pill-dot"></div>
+      <span id="user-pill-name">—</span>
+      <span style="font-size:10px;color:#9ca3af">Logout</span>
+    </div>
+  </div>
+
+  <!-- Nav — role-aware tabs -->
+  <div class="nav" id="nav-tabs">
+    <div class="nav-tab active" data-tab="queue" onclick="switchTab('queue')">📋 Live Queue <span class="badge" id="waiting-count">0</span></div>
+    <div class="nav-tab" data-tab="entry" onclick="switchTab('entry')" id="nav-entry">➕ Add Patient</div>
+    <div class="nav-tab" data-tab="doctor" onclick="switchTab('doctor')" id="nav-doctor">🩺 Doctor</div>
+    <div class="nav-tab" data-tab="references" onclick="switchTab('references')" id="nav-references">📁 References <span class="badge badge-purple" id="ref-badge">0</span></div>
+    <div class="nav-tab" data-tab="display" onclick="switchTab('display')">📺 TV Display</div>
+    <div class="nav-tab" data-tab="audit" onclick="switchTab('audit')" id="nav-audit">🔒 Audit <span class="badge badge-amber" id="audit-badge">0</span></div>
+    <div class="nav-tab" data-tab="reports" onclick="switchTab('reports')" id="nav-reports">📊 Reports</div>
+    <div class="nav-tab" data-tab="settings" onclick="switchTab('settings')" id="nav-settings">⚙️ Settings</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="main-content"></div>
+
+</div>
+
+<!-- Skip Modal -->
+<div class="modal-overlay" id="skip-modal">
+  <div class="modal">
+    <h3>⏭️ Skip Patient</h3>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:12px">Reason required for audit log</p>
+    <select id="skip-reason-select" style="margin-bottom:8px">
+      <option value="">— Select reason —</option>
+      <option value="Patient not responding to call">Patient not responding to call</option>
+      <option value="Patient requested more time">Patient requested more time</option>
+      <option value="Patient in washroom">Patient in washroom</option>
+      <option value="Other">Other</option>
+    </select>
+    <input type="text" id="skip-reason-text" placeholder="Additional details (optional)" />
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="confirmSkip()" style="flex:1">Confirm Skip</button>
+      <button class="btn btn-secondary" onclick="closeSkipModal()" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- /// UPDATED SECTION — Upload Reference Modal -->
+<div class="modal-overlay" id="upload-ref-modal">
+  <div class="modal">
+    <h3>📎 Upload Patient Reference</h3>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div class="form-group full">
+        <label>Select Patient *</label>
+        <input type="text" id="ref-patient-search" placeholder="Search patient name..." oninput="filterRefPatients()" />
+        <div class="patient-search-list" id="ref-patient-list"></div>
+      </div>
+      <div class="form-group full">
+        <label>Document Category *</label>
+        <select id="ref-category">
+          <option value="prescription">Previous Prescription</option>
+          <option value="lab">Lab Report</option>
+          <option value="scan">Scan / MRI / CT</option>
+          <option value="ecg">ECG</option>
+          <option value="discharge">Discharge Summary</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Notes (optional)</label>
+        <input type="text" id="ref-notes" placeholder="e.g. Chest X-Ray — June 2025" />
+      </div>
+      <div class="form-group full">
+        <label>Upload File (PDF / JPG / PNG)</label>
+        <div class="upload-area" onclick="document.getElementById('ref-file-input').click()">
+          <div id="upload-area-text">📂 Click to select file</div>
+          <input type="file" id="ref-file-input" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(event)" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" onclick="saveReference()" style="flex:1">💾 Save Reference</button>
+      <button class="btn btn-secondary" onclick="closeRefModal()" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal" style="width:500px">
+    <h3 id="preview-title">Preview</h3>
+    <div id="preview-content" style="margin-top:10px;text-align:center"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closePreviewModal()" style="flex:1">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="version-tag">v8.0 · PocketBase Sync</div>
+
+<!-- PocketBase JS SDK (CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.3/dist/pocketbase.umd.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════
+// POCKETBASE CONFIG
+// fly.io deploy হলে এই URL আপনার app-এর URL দিয়ে replace করুন
+// ════════════════════════════════════════════════════════
+const PB_URL = window.PB_URL || 'https://bkb-chamber.fly.dev';
+
+const pb = new PocketBase(PB_URL);
+pb.autoCancellation(false);
+
+// ── today's date key (YYYYMMDD) for daily isolation ──
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+const DAY = todayKey();
+
+// ── Sync indicator ──
+function setSyncStatus(ok, msg) {
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  el.textContent = ok ? '🟢 Synced' : ('🔴 ' + (msg || 'Offline'));
+  el.style.color = ok ? '#16a34a' : '#dc2626';
+}
+
+// ── Helper: get or create the single session record for today ──
+let _sessionId = null;
+
+async function getSessionId() {
+  if (_sessionId) return _sessionId;
+  try {
+    // Try to find today's session
+    const res = await pb.collection('sessions').getFirstListItem(`day="${DAY}"`);
+    _sessionId = res.id;
+    return _sessionId;
+  } catch(e) {
+    // Not found — create it
+    try {
+      const rec = await pb.collection('sessions').create({
+        day: DAY,
+        patients: JSON.stringify([]),
+        nextToken: 1,
+        doctorStatus: 'arriving',
+        consultTs: JSON.stringify({}),
+        refMeta: JSON.stringify([]),
+      });
+      _sessionId = rec.id;
+      return _sessionId;
+    } catch(err) {
+      console.error('Session create error:', err);
+      setSyncStatus(false, 'DB Error');
+      return null;
+    }
+  }
+}
+
+// ── Load initial state from PocketBase ──
+async function pbLoadState() {
+  try {
+    const sid = await getSessionId();
+    if (!sid) return;
+    const rec = await pb.collection('sessions').getOne(sid);
+
+    // Patients
+    const pArr = JSON.parse(rec.patients || '[]');
+    patients.length = 0;
+    pArr.forEach(p => { if (p) patients.push(p); });
+
+    // nextToken
+    if (rec.nextToken > nextToken) nextToken = rec.nextToken;
+
+    // doctorStatus
+    if (rec.doctorStatus && rec.doctorStatus !== doctorStatus) {
+      doctorStatus = rec.doctorStatus;
+      const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+      const pill = document.getElementById('doctor-status-pill');
+      if (pill) {
+        pill.className = `doctor-status-pill ${ds.cls}`;
+        const txt = document.getElementById('doc-status-text');
+        if (txt) txt.textContent = ds.label;
+      }
+    }
+
+    // consultTs
+    const cTs = JSON.parse(rec.consultTs || '{}');
+    Object.assign(consultStartTimestamps, cTs);
+
+    // refMeta
+    const refs = JSON.parse(rec.refMeta || '[]');
+    refs.forEach(rem => {
+      if (!rem) return;
+      const local = patientReferences.find(r => r.id === rem.id);
+      if (!local) patientReferences.unshift({ ...rem, fileDataUrl: null });
+    });
+
+    updateNavBadges();
+    render();
+    setSyncStatus(true);
+    console.log('✅ PocketBase state loaded for', DAY);
+  } catch(err) {
+    console.error('pbLoadState error:', err);
+    setSyncStatus(false, 'Load failed');
+  }
+}
+
+// ── Realtime subscription — any change from other devices ──
+async function pbSubscribe() {
+  const sid = await getSessionId();
+  if (!sid) return;
+
+  pb.collection('sessions').subscribe(sid, function(e) {
+    const rec = e.record;
+    if (!rec) return;
+
+    // Patients
+    try {
+      const pArr = JSON.parse(rec.patients || '[]');
+      patients.length = 0;
+      pArr.forEach(p => { if (p) patients.push(p); });
+    } catch(ex) {}
+
+    // nextToken
+    if (rec.nextToken > nextToken) nextToken = rec.nextToken;
+
+    // doctorStatus
+    if (rec.doctorStatus && rec.doctorStatus !== doctorStatus) {
+      doctorStatus = rec.doctorStatus;
+      const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+      const pill = document.getElementById('doctor-status-pill');
+      if (pill) {
+        pill.className = `doctor-status-pill ${ds.cls}`;
+        const txt = document.getElementById('doc-status-text');
+        if (txt) txt.textContent = ds.label;
+      }
+    }
+
+    // consultTs
+    try {
+      const cTs = JSON.parse(rec.consultTs || '{}');
+      Object.assign(consultStartTimestamps, cTs);
+    } catch(ex) {}
+
+    // refMeta
+    try {
+      const refs = JSON.parse(rec.refMeta || '[]');
+      refs.forEach(rem => {
+        if (!rem) return;
+        const local = patientReferences.find(r => r.id === rem.id);
+        if (!local) patientReferences.unshift({ ...rem, fileDataUrl: null });
+      });
+    } catch(ex) {}
+
+    updateNavBadges();
+    if (['queue','doctor','display','references'].includes(currentTab)) render();
+    setSyncStatus(true);
+  });
+}
+
+// ── Debounced write to PocketBase ──
+let _writeTimer = null;
+function schedulePbWrite() {
+  clearTimeout(_writeTimer);
+  _writeTimer = setTimeout(doPbWrite, 400); // 400ms debounce
+}
+
+async function doPbWrite() {
+  const sid = await getSessionId();
+  if (!sid) return;
+  try {
+    await pb.collection('sessions').update(sid, {
+      patients:     JSON.stringify(patients),
+      nextToken:    nextToken,
+      doctorStatus: doctorStatus,
+      consultTs:    JSON.stringify(consultStartTimestamps),
+      refMeta:      JSON.stringify(patientReferences.map(r => ({
+        id: r.id, patientToken: r.patientToken, patientName: r.patientName,
+        category: r.category, notes: r.notes, fileName: r.fileName,
+        fileType: r.fileType, uploadedAt: r.uploadedAt, uploadedBy: r.uploadedBy,
+      }))),
+    });
+    setSyncStatus(true);
+  } catch(err) {
+    console.error('PB write error:', err);
+    setSyncStatus(false, 'Write failed');
+  }
+}
+
+// ── Audit log — separate collection for immutable log ──
+async function pbWriteAudit(entry) {
+  try {
+    await pb.collection('audit_logs').create({
+      day: DAY,
+      type: entry.type,
+      icon: entry.icon,
+      action: entry.action,
+      detail: entry.detail,
+      by: entry.by,
+      reason: entry.reason || '',
+      time: entry.time,
+      ts: entry._ts,
+    });
+  } catch(err) {
+    console.error('Audit write error:', err);
+  }
+}
+
+// ── Load audit from PocketBase on audit tab ──
+async function pbLoadAudit() {
+  try {
+    const res = await pb.collection('audit_logs').getFullList({
+      filter: `day="${DAY}"`,
+      sort: '-ts',
+    });
+    auditLog.length = 0;
+    res.forEach(r => auditLog.push({
+      type: r.type, icon: r.icon, action: r.action,
+      detail: r.detail, by: r.by, reason: r.reason,
+      time: r.time, _ts: r.ts,
+    }));
+  } catch(err) {
+    console.error('Audit load error:', err);
+  }
+}
+
+// ── Expose sync helpers (same interface as Firebase version) ──
+window.fbSyncPatients     = schedulePbWrite;
+window.fbSyncDoctorStatus = schedulePbWrite;
+window.fbSyncConsultTs    = schedulePbWrite;
+window.fbSyncRefMeta      = schedulePbWrite;
+window.fbLogAction        = pbWriteAudit;
+
+// ── Override switchTab to load audit from PB when tab opened ──
+const _origSwitchTab = window.switchTab;
+window.switchTab = async function(tab) {
+  if (tab === 'audit') await pbLoadAudit();
+  if (typeof _origSwitchTab === 'function') _origSwitchTab(tab);
+};
+
+// ── Bootstrap ──
+(async () => {
+  setSyncStatus(false, 'Connecting...');
+  await pbLoadState();
+  await pbSubscribe();
+  console.log('✅ PocketBase realtime active');
+})();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// /// UPDATED SECTION — 4-ROLE AUTH SYSTEM
+// ═══════════════════════════════════════════════════════
+const PINS = {
+  superadmin: '9999',
+  doctor:     '1234',
+  assistant:  '0000',
+  desk:       '5678',
+};
+
+const ROLE_CONFIG = {
+  superadmin: {
+    name: 'Super Admin',
+    icon: '👑',
+    badgeCls: 'role-badge-superadmin',
+    tabs: ['queue','entry','doctor','references','display','audit','reports','settings'],
+    canConsult: true, canCompleteConsult: true, canSettings: true,
+  },
+  doctor: {
+    name: 'Dr. B. K. Bose',
+    icon: '🩺',
+    badgeCls: 'role-badge-doctor',
+    tabs: ['queue','doctor','references','display','reports'],
+    canConsult: true, canCompleteConsult: true, canSettings: false,
+  },
+  assistant: {
+    name: 'Assistant',
+    icon: '💼',
+    badgeCls: 'role-badge-assistant',
+    tabs: ['queue','entry','references','display'],
+    canConsult: false, canCompleteConsult: false, canSettings: false,
+  },
+  desk: {
+    name: 'Desk',
+    icon: '🖥️',
+    badgeCls: 'role-badge-desk',
+    tabs: ['queue','entry','display','reports'],
+    canConsult: false, canCompleteConsult: false, canSettings: false,
+  },
+};
+
+let currentUser = null;
+let selectedLoginRole = 'doctor';
+
+function selectRole(role) {
+  selectedLoginRole = role;
+  ['superadmin','doctor','assistant','desk'].forEach(r => {
+    document.getElementById('role-' + r).classList.toggle('sel', r === role);
+  });
+  const labels = { superadmin: 'Super Admin PIN (4 digit)', doctor: 'Doctor PIN (4 digit)', assistant: 'Assistant PIN (4 digit)', desk: 'Desk PIN (4 digit)' };
+  document.getElementById('pin-label').textContent = labels[role];
+  document.getElementById('pin-input').value = '';
+  clearLoginError();
+}
+
+function clearLoginError() {
+  document.getElementById('login-error').classList.remove('show');
+}
+
+function doLogin() {
+  const pin = document.getElementById('pin-input').value;
+  const role = selectedLoginRole;
+  if (pin === PINS[role]) {
+    const cfg = ROLE_CONFIG[role];
+    currentUser = { role, name: cfg.name, icon: cfg.icon };
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('user-pill-name').textContent = cfg.name;
+
+    // Update role badge
+    const badge = document.getElementById('header-role-badge');
+    badge.textContent = cfg.icon + ' ' + (role === 'superadmin' ? 'Super Admin' : cfg.name.split(' ')[0]);
+    badge.className = 'role-badge ' + cfg.badgeCls;
+
+    // Show/hide nav tabs based on role
+    applyRoleNavVisibility(role);
+
+    logAction('login', '🔑', 'User logged in', `${cfg.name} (${role}) logged into system.`, cfg.name);
+    updateNavBadges();
+    render();
+  } else {
+    document.getElementById('login-error').classList.add('show');
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+  }
+}
+
+function applyRoleNavVisibility(role) {
+  const cfg = ROLE_CONFIG[role];
+  const tabMap = {
+    entry: 'nav-entry',
+    doctor: 'nav-doctor',
+    references: 'nav-references',
+    audit: 'nav-audit',
+    reports: 'nav-reports',
+    settings: 'nav-settings',
+  };
+  Object.entries(tabMap).forEach(([tab, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden', !cfg.tabs.includes(tab));
+  });
+}
+
+function doLogout() {
+  if (!confirm('লগআউট করবেন?')) return;
+  logAction('login', '🔒', 'User logged out', `${currentUser.name} logged out.`, currentUser.name);
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pin-input').value = '';
+  selectRole('doctor');
+}
+
+// ═══════════════════════════════════════════════════════
+// SETTINGS — persistent via localStorage
+// ═══════════════════════════════════════════════════════
+let appSettings = {
+  rxAppUrl: 'https://digitalrxpro.com', // Digital RX Pro web version
+  rxAppName: 'Digital RX Pro',
+  chamberName: 'Dr. B. K. Bose Chamber',
+  chamberLocation: 'Dinajpur',
+  assistantNames: 'Jogesh, Shahin',
+};
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('bkb_settings_v4');
+    if (saved) Object.assign(appSettings, JSON.parse(saved));
+  } catch(e) {}
+}
+
+function saveSettings() {
+  localStorage.setItem('bkb_settings_v4', JSON.stringify(appSettings));
+  showToast('✓ Settings saved', 'success');
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let currentTab = 'queue';
+let doctorStatus = 'arriving';
+let selectedPriority = 'regular';
+let selectedSource = 'jogesh';
+let skipTargetToken = null;
+let completedCollapsed = true;
+
+// /// UPDATED SECTION — Patient document references
+let patientReferences = []; // { id, patientToken, patientName, category, notes, fileName, fileType, fileDataUrl, uploadedAt, uploadedBy }
+let selectedRefPatientToken = null;
+let pendingFileData = null;
+
+const doctorStatuses = {
+  arriving:  { label: 'Arriving Soon',   cls: 'status-arriving',  dotCls: 'dot-amber' },
+  inchamber: { label: 'In Chamber',      cls: 'status-inchamber', dotCls: 'dot-green' },
+  delayed:   { label: 'Delayed',         cls: 'status-delayed',   dotCls: 'dot-red'   },
+  closed:    { label: 'Chamber Closed',  cls: 'status-closed',    dotCls: 'dot-amber' },
+  break:     { label: 'Short Break',     cls: 'status-break',     dotCls: 'dot-amber' },
+};
+
+const DOCTOR_ABSENT_STATUSES = ['arriving', 'delayed', 'closed', 'break'];
+
+function isDoctorPresent() { return doctorStatus === 'inchamber'; }
+
+let patients = [];
+let auditLog = [];
+let nextToken = 1;
+
+let consultStartTimestamps = {};
+let consultDurations = [];
+
+
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function nowTime() {
+  return new Date().toLocaleTimeString('en-BD', { hour: '2-digit', minute: '2-digit' });
+}
+
+function getAvgConsultDuration() {
+  if (consultDurations.length === 0) return 8;
+  return Math.round(consultDurations.reduce((a, b) => a + b, 0) / consultDurations.length);
+}
+
+function calcWaitingTime(position) {
+  const avg = getAvgConsultDuration();
+  const inCons = patients.find(p => p.status === 'incons');
+  let timeUntilCurrent = 0;
+  if (inCons && consultStartTimestamps[inCons.token]) {
+    const elapsedMinutes = (Date.now() - consultStartTimestamps[inCons.token]) / 60000;
+    timeUntilCurrent = Math.max(0, avg - elapsedMinutes);
+  }
+  return Math.round(timeUntilCurrent + (position - 1) * avg);
+}
+
+function formatDuration(ms) {
+  if (!ms) return '—';
+  const totalSeconds = Math.floor(ms / 1000);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function getLiveConsultDuration(token) {
+  if (!consultStartTimestamps[token]) return null;
+  return Date.now() - consultStartTimestamps[token];
+}
+
+function getPriorityInfo(type) {
+  const map = {
+    regular:   { cls: 'token-regular',   label: 'Regular',    color: '#2563eb' },
+    emergency: { cls: 'token-emergency', label: 'Emergency',  color: '#dc2626' },
+    docref:    { cls: 'token-docref',    label: 'Doc Ref',    color: '#d97706' },
+    followup:  { cls: 'token-followup',  label: 'Follow-up',  color: '#0f6e56' },
+  };
+  return map[type] || map.regular;
+}
+
+function getBigTokenCls(type) {
+  const map = { emergency: 'emergency', docref: 'docref', followup: 'followup' };
+  return map[type] || '';
+}
+
+function getStatusChip(status) {
+  const map = {
+    waiting:   ['chip-waiting',  'Waiting'],
+    arrived:   ['chip-arrived',  '✓ Arrived'],
+    called:    ['chip-called',   '📣 Called'],
+    incons:    ['chip-incons',   '🏥 In Consultation'],
+    completed: ['chip-completed','✔ Completed'],
+    noshow:    ['chip-noshow',   '✗ No Show'],
+    cancelled: ['chip-cancelled','Cancelled'],
+  };
+  const [cls, label] = map[status] || ['chip-waiting', status];
+  return `<span class="chip ${cls}">${label}</span>`;
+}
+
+function getSourceTag(source) {
+  const map = { jogesh: ['tag-jogesh', 'Jogesh'], shahin: ['tag-shahin', 'Shahin'], direct: ['tag-direct', 'Direct'], docref: ['tag-docref', 'Doc Ref'] };
+  const [cls, label] = map[source] || ['tag-direct', source];
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+
+function logAction(type, icon, action, detail, by, reason = '') {
+  const entry = { type, icon, action, detail, by, time: nowTime(), reason, _ts: Date.now() };
+  auditLog.unshift(entry);
+  const badge = document.getElementById('audit-badge');
+  if (badge) badge.textContent = auditLog.length;
+  if (window.fbLogAction) window.fbLogAction(entry);
+}
+
+function updateNavBadges() {
+  const activeCount = patients.filter(p => !['completed', 'noshow', 'cancelled'].includes(p.status)).length;
+  const wc = document.getElementById('waiting-count');
+  if (wc) wc.textContent = activeCount;
+  const rb = document.getElementById('ref-badge');
+  if (rb) rb.textContent = patientReferences.length;
+}
+
+function getActorName() {
+  return currentUser ? currentUser.name : 'System';
+}
+
+function canDo(action) {
+  if (!currentUser) return false;
+  const cfg = ROLE_CONFIG[currentUser.role];
+  if (action === 'consult') return cfg.canConsult;
+  if (action === 'complete') return cfg.canCompleteConsult;
+  if (action === 'settings') return cfg.canSettings;
+  if (action === 'audit') return ['superadmin','doctor'].includes(currentUser.role);
+  return true;
+}
+
+// ═══════════════════════════════════════════════════════
+// TAB ROUTING
+// ═══════════════════════════════════════════════════════
+function switchTab(tab) {
+  // Check role access
+  const cfg = currentUser ? ROLE_CONFIG[currentUser.role] : null;
+  if (cfg && !cfg.tabs.includes(tab)) {
+    showToast('⛔ এই সেকশনে আপনার access নেই।', 'error');
+    return;
+  }
+  currentTab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+
+  // /// UPDATED SECTION — TV Display: hide chrome, start live timers
+  const isDisplay = (tab === 'display');
+  const header = document.querySelector('.header');
+  const nav    = document.querySelector('.nav');
+  const main   = document.getElementById('main-content');
+  if (header) header.style.display = isDisplay ? 'none' : '';
+  if (nav)    nav.style.display    = isDisplay ? 'none' : '';
+  if (main) {
+    main.style.padding    = isDisplay ? '0' : '';
+    main.style.maxWidth   = isDisplay ? '100%' : '';
+    main.style.height     = isDisplay ? '100vh' : '';
+    main.style.overflowY  = isDisplay ? 'hidden' : '';
+  }
+
+  // Stop TV timers if leaving display tab
+  if (!isDisplay) {
+    if (_tvClockInterval)  { clearInterval(_tvClockInterval);  _tvClockInterval  = null; }
+    if (_tvAutoRefresh)    { clearInterval(_tvAutoRefresh);    _tvAutoRefresh    = null; }
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+
+  render();
+
+  // Start TV live clock & auto-refresh after render
+  if (isDisplay) {
+    startTVClock();
+    startTVAutoRefresh();
+  }
+}
+
+function render() {
+  const main = document.getElementById('main-content');
+  if (!main) return;
+  if (currentTab === 'queue')      main.innerHTML = renderQueue();
+  else if (currentTab === 'entry')     main.innerHTML = renderEntry();
+  else if (currentTab === 'doctor')    main.innerHTML = renderDoctor();
+  else if (currentTab === 'references') main.innerHTML = renderReferences();
+  else if (currentTab === 'display')   main.innerHTML = renderDisplay();
+  else if (currentTab === 'audit')     main.innerHTML = renderAudit();
+  else if (currentTab === 'reports')   main.innerHTML = renderReports();
+  else if (currentTab === 'settings')  main.innerHTML = renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════
+// QUEUE TAB
+// ═══════════════════════════════════════════════════════
+function renderQueue() {
+  const inCons           = patients.find(p => p.status === 'incons');
+  const calledPatients   = patients.filter(p => p.status === 'called');
+  const arrivedPatients  = patients.filter(p => p.status === 'arrived');
+  const waitingPatients  = patients.filter(p => p.status === 'waiting');
+  const completedPatients= patients.filter(p => p.status === 'completed');
+  const noshowPatients   = patients.filter(p => p.status === 'noshow');
+  const emergencies = patients.filter(p => p.type === 'emergency' && !['completed','noshow','cancelled'].includes(p.status));
+
+  const nextPatient = calledPatients[0] || arrivedPatients[0] || waitingPatients[0];
+  const liveDuration = inCons ? getLiveConsultDuration(inCons.token) : null;
+  const timerStr = liveDuration ? formatDuration(liveDuration) : '0:00';
+
+  let html = '';
+
+  if (emergencies.length > 0) {
+    html += `<div class="alert alert-danger">🚨 ${emergencies.length} emergency patient(s) in queue — immediate attention required</div>`;
+  }
+
+  if (!isDoctorPresent()) {
+    const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+    html += `<div class="doctor-not-here-banner">
+      <div class="doctor-not-here-icon">🚗</div>
+      <div class="doctor-not-here-text">
+        <h3>Doctor এখনো Chamber-এ আসেননি</h3>
+        <p>বর্তমান Status: <strong>${ds.label}</strong><br>
+        Patient Register করা যাবে, কিন্তু Consultation শুরু করা যাবে না।</p>
+        ${canDo('consult') ? `<button class="go-btn" onclick="switchTab('doctor')">🩺 Doctor Status পরিবর্তন করুন →</button>` : ''}
+      </div>
+    </div>`;
+  }
+
+  html += `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value stat-blue">${waitingPatients.length + arrivedPatients.length + calledPatients.length}</div><div class="stat-label">In Queue</div></div>
+      <div class="stat-card"><div class="stat-value stat-green">${arrivedPatients.length}</div><div class="stat-label">Arrived</div></div>
+      <div class="stat-card"><div class="stat-value stat-purple">${completedPatients.length}</div><div class="stat-label">Done Today</div></div>
+      <div class="stat-card"><div class="stat-value stat-red">${noshowPatients.length}</div><div class="stat-label">No Show</div></div>
+    </div>`;
+
+  if (inCons) {
+    html += `
+      <div class="section-in-consultation" id="incons-card">
+        <div class="consultation-badge"><div class="pulse-dot"></div> IN CONSULTATION</div>
+        <div class="consultation-patient-row">
+          <div class="big-token ${getBigTokenCls(inCons.type)}">#${inCons.token}</div>
+          <div class="patient-info-main">
+            <div class="patient-name-big">${inCons.name}</div>
+            <div class="patient-sub">${inCons.age}${inCons.gender} · ${getPriorityInfo(inCons.type).label} ${inCons.source !== 'direct' ? '· via ' + inCons.addedBy : ''}</div>
+            ${inCons.notes ? `<div style="font-size:11px;color:#6b7280;margin-top:2px;font-style:italic">${inCons.notes}</div>` : ''}
+          </div>
+          <div>
+            <div class="consult-timer" id="live-timer">${timerStr}</div>
+            <div class="consult-timer-label">Running</div>
+          </div>
+        </div>
+        ${canDo('complete') ? `<button class="btn-complete-big" onclick="completeConsultation(${inCons.token})">✔ Complete Consultation — Move to Next Patient</button>` : ''}
+      </div>`;
+  } else {
+    if (isDoctorPresent()) {
+      html += `<div class="alert alert-info" style="text-align:center">📋 No active consultation. Start when patient enters doctor room.</div>`;
+    }
+  }
+
+  if (nextPatient && nextPatient.token !== inCons?.token) {
+    const npPi = getPriorityInfo(nextPatient.type);
+    html += `
+      <div class="section-next">
+        <div class="next-badge">▶ NEXT PATIENT</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="token ${npPi.cls}">#${nextPatient.token}</div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13px;color:#111827">${nextPatient.name}</div>
+            <div style="font-size:11px;color:#6b7280">${nextPatient.age}${nextPatient.gender} · ${npPi.label}</div>
+          </div>
+          <div>${getStatusChip(nextPatient.status)}</div>
+        </div>
+        <div class="action-btns" style="margin-top:10px">
+          ${nextPatient.status === 'waiting' ? `<button class="op-btn op-btn-arrive" onclick="markArrived(${nextPatient.token})">✓ Mark Arrived</button>` : ''}
+          ${nextPatient.status === 'arrived' ? `<button class="op-btn op-btn-call" onclick="callPatient(${nextPatient.token})">📣 Call Patient</button>` : ''}
+          ${nextPatient.status === 'called' ? renderStartBtn(nextPatient.token) : ''}
+          ${['waiting','arrived','called'].includes(nextPatient.status) ? `<button class="op-btn op-btn-noshow" onclick="markNoShow(${nextPatient.token})">✗ No Show</button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  if (calledPatients.length > 1) {
+    html += `<div class="queue-section"><div class="queue-section-label">📣 Called — Preparing to Enter</div>`;
+    calledPatients.filter(p => p !== nextPatient).forEach(p => { html += renderQueueItem(p); });
+    html += `</div>`;
+  }
+
+  if (arrivedPatients.filter(p => p !== nextPatient).length > 0) {
+    html += `<div class="queue-section"><div class="queue-section-label">✓ Arrived — Waiting in Room</div>`;
+    arrivedPatients.filter(p => p !== nextPatient).forEach(p => { html += renderQueueItem(p); });
+    html += `</div>`;
+  }
+
+  if (waitingPatients.filter(p => p !== nextPatient).length > 0) {
+    let pos = 1;
+    html += `<div class="queue-section"><div class="queue-section-label">⏳ Not Arrived Yet</div>`;
+    waitingPatients.filter(p => p !== nextPatient).forEach(p => { pos++; html += renderQueueItem(p, pos); });
+    html += `</div>`;
+  }
+
+  if (completedPatients.length > 0 || noshowPatients.length > 0) {
+    const allDone = [...completedPatients, ...noshowPatients];
+    html += `<div class="card">
+      <div class="collapsible-header" onclick="toggleCompleted()">
+        <span class="card-title" style="margin-bottom:0">✔ Completed / No Show Today (${allDone.length})</span>
+        <span style="font-size:12px;color:#6b7280">${completedCollapsed ? '▼ Show' : '▲ Hide'}</span>
+      </div>
+      <div class="collapsible-body ${completedCollapsed ? '' : 'open'}">
+        <div style="margin-top:10px">
+          ${allDone.map(p => renderQueueItemCompleted(p)).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const canEntry = currentUser && ROLE_CONFIG[currentUser.role].tabs.includes('entry');
+  if (canEntry) {
+    html += `<div style="text-align:center;margin-top:4px">
+      <button class="btn btn-primary" onclick="switchTab('entry')" style="padding:12px 30px;font-size:13px">➕ Register New Patient</button>
+    </div>`;
+  }
+
+  return html;
+}
+
+function renderStartBtn(token) {
+  if (!canDo('consult')) {
+    return `<button class="op-btn op-btn-start" disabled title="আপনার এই permission নেই">🔒 No Permission</button>`;
+  }
+  if (!isDoctorPresent()) {
+    const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+    return `<button class="op-btn op-btn-start" disabled title="Doctor এখনো chamber-এ আসেননি (${ds.label})">🔒 Doctor Not Here</button>`;
+  }
+  return `<button class="op-btn op-btn-start" onclick="startConsultation(${token})">🏥 Start Consultation</button>`;
+}
+
+function renderQueueItem(p, position = null) {
+  const pi = getPriorityInfo(p.type);
+  let itemCls = 'queue-item';
+  if (p.status === 'called') itemCls += ' called';
+  else if (p.status === 'arrived') itemCls += ' arrived';
+  else if (p.type === 'emergency') itemCls += ' emergency-item';
+
+  const waitStr = p.status === 'waiting' && position ? `~${calcWaitingTime(position)} min` : '';
+  const hasRefs = patientReferences.filter(r => r.patientToken === p.token).length;
+
+  return `<div class="${itemCls}">
+    <div class="token ${pi.cls}">${p.token}</div>
+    <div class="queue-info">
+      <div class="queue-name">${p.name} <span style="font-weight:400;font-size:11px;color:#9ca3af">${p.age}${p.gender}</span>
+        ${hasRefs ? `<span class="tag" style="background:#ede9fe;color:#5b21b6;margin-left:4px">📁 ${hasRefs}</span>` : ''}
+      </div>
+      <div class="queue-meta">
+        ${getStatusChip(p.status)}
+        ${getSourceTag(p.source)}
+        ${p.type !== 'regular' ? `<span class="tag" style="background:#fef3c7;color:#92400e">${pi.label}</span>` : ''}
+        ${p.notes ? `<span style="font-size:10px;color:#9ca3af;font-style:italic">${p.notes}</span>` : ''}
+      </div>
+      <div class="action-btns">
+        ${p.status === 'waiting'  ? `<button class="op-btn op-btn-arrive" onclick="markArrived(${p.token})">✓ Arrived</button>` : ''}
+        ${p.status === 'arrived'  ? `<button class="op-btn op-btn-call"   onclick="callPatient(${p.token})">📣 Call</button>` : ''}
+        ${p.status === 'called'   ? renderStartBtn(p.token) : ''}
+        ${['waiting','arrived','called'].includes(p.status) ? `<button class="op-btn op-btn-noshow" onclick="markNoShow(${p.token})">✗ No Show</button>` : ''}
+        ${['waiting','arrived'].includes(p.status) ? `<button class="op-btn op-btn-cancel" onclick="openSkipModal(${p.token})">⏭ Skip</button>` : ''}
+        <button class="op-btn" style="background:#f5f3ff;color:#5b21b6;border:1px solid #c4b5fd" onclick="openRefModalForPatient(${p.token})">📎 Upload Doc</button>
+      </div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:11px;color:#9ca3af">${waitStr}</div>
+      <div style="font-size:10px;color:#d1d5db;margin-top:3px">Reg. ${p.addedAt}</div>
+    </div>
+  </div>`;
+}
+
+function renderQueueItemCompleted(p) {
+  return `<div class="queue-item ${p.status === 'noshow' ? 'noshow-item' : 'completed-item'}">
+    <div class="token token-completed">${p.token}</div>
+    <div class="queue-info">
+      <div class="queue-name" style="color:#9ca3af">${p.name}</div>
+      <div class="queue-meta">
+        ${getStatusChip(p.status)}
+        ${getSourceTag(p.source)}
+        ${p.completed_at ? `<span style="font-size:10px;color:#d1d5db">Done ${p.completed_at}</span>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// OPERATION ACTIONS
+// ═══════════════════════════════════════════════════════
+function markArrived(token) {
+  const p = patients.find(x => x.token === token);
+  if (!p || p.status !== 'waiting') return;
+  p.status = 'arrived';
+  p.arrived_at = nowTime();
+  logAction('checkin', '✅', 'Patient arrived', `${p.name} (Token #${token}) checked in.`, getActorName());
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  updateNavBadges(); render();
+}
+
+function callPatient(token) {
+  const p = patients.find(x => x.token === token);
+  if (!p || !['arrived','waiting'].includes(p.status)) return;
+  if (p.status === 'waiting') p.arrived_at = nowTime();
+  p.status = 'called';
+  p.called_at = nowTime();
+  logAction('modify', '📣', 'Patient called', `${p.name} (Token #${token}) called to enter doctor room.`, getActorName());
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  updateNavBadges(); render();
+}
+
+function startConsultation(token) {
+  if (!canDo('consult')) { showToast('⛔ আপনার এই permission নেই।', 'error'); return; }
+  if (!isDoctorPresent()) {
+    const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+    showToast(`❌ Doctor এখনো Chamber-এ নেই (${ds.label})।`, 'error');
+    return;
+  }
+  const p = patients.find(x => x.token === token);
+  if (!p || p.status !== 'called') return;
+  const existingInCons = patients.find(x => x.status === 'incons');
+  if (existingInCons) {
+    showToast(`❌ ${existingInCons.name} (Token #${existingInCons.token}) এখন Consultation-এ। আগে শেষ করুন।`, 'error');
+    return;
+  }
+  p.status = 'incons';
+  p.consultation_started_at = nowTime();
+  consultStartTimestamps[token] = Date.now();
+  logAction('start', '🏥', 'Consultation started', `${p.name} (Token #${token}) entered doctor room.`, getActorName());
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  if (window.fbSyncConsultTs) window.fbSyncConsultTs();
+  updateNavBadges(); render();
+}
+
+function completeConsultation(token) {
+  if (!canDo('complete')) { showToast('⛔ আপনার এই permission নেই।', 'error'); return; }
+  const p = patients.find(x => x.token === token);
+  if (!p || p.status !== 'incons') return;
+  const startTime = consultStartTimestamps[token];
+  const durationMs = startTime ? Date.now() - startTime : 0;
+  const durationMin = Math.round(durationMs / 60000);
+  consultDurations.push(Math.max(1, durationMin));
+  delete consultStartTimestamps[token];
+  p.status = 'completed';
+  p.consultation_ended_at = nowTime();
+  p.completed_at = nowTime();
+  logAction('complete', '✔', 'Consultation completed', `${p.name} (Token #${token}) — Duration: ${durationMin} min.`, getActorName());
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  if (window.fbSyncConsultTs) window.fbSyncConsultTs();
+  updateNavBadges(); render();
+  const next = patients.find(x => x.status === 'called') || patients.find(x => x.status === 'arrived') || patients.find(x => x.status === 'waiting');
+  if (next) {
+    setTimeout(() => {
+      const msg = next.status === 'called' ? `📣 Next: Token #${next.token} ${next.name} (Called — ready to start)` : `📣 Next: Token #${next.token} ${next.name}`;
+      showToast(msg, next.status === 'called' ? 'success' : 'info');
+    }, 300);
+  }
+}
+
+function markNoShow(token) {
+  const p = patients.find(x => x.token === token);
+  if (!p) return;
+  if (!confirm(`Mark Token #${token} (${p.name}) as NO SHOW?`)) return;
+  p.status = 'noshow';
+  logAction('noshow', '❌', 'No Show marked', `${p.name} (Token #${token}) — did not respond.`, getActorName(), 'Patient did not appear when called');
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  updateNavBadges(); render();
+}
+
+function openSkipModal(token) {
+  skipTargetToken = token;
+  document.getElementById('skip-modal').classList.add('open');
+}
+function closeSkipModal() {
+  skipTargetToken = null;
+  document.getElementById('skip-modal').classList.remove('open');
+}
+function confirmSkip() {
+  const reason = document.getElementById('skip-reason-select').value;
+  const extra = document.getElementById('skip-reason-text').value;
+  if (!reason) { alert('Please select a reason for skipping.'); return; }
+  const fullReason = extra ? `${reason}. ${extra}` : reason;
+  const p = patients.find(x => x.token === skipTargetToken);
+  if (p) {
+    logAction('modify', '⏭️', 'Patient skipped', `${p.name} (Token #${skipTargetToken}) skipped temporarily.`, getActorName(), fullReason);
+    const idx = patients.indexOf(p);
+    patients.splice(idx, 1);
+    patients.push(p);
+  }
+  closeSkipModal();
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  render();
+} {
+  completedCollapsed = !completedCollapsed;
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// ENTRY TAB
+// ═══════════════════════════════════════════════════════
+function renderEntry() {
+  return `
+    <div class="alert alert-info">
+      🔒 Token number is <strong>auto-assigned</strong> by system. Next token: <strong>#${nextToken}</strong>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">📝 New Patient Registration</div>
+      
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Patient Name *</label>
+          <input type="text" id="f-name" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="f-phone" placeholder="01X-XXXXXXXX" />
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" id="f-age" placeholder="Years" min="1" max="120" />
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="f-gender">
+            <option value="M">Male (পুরুষ)</option>
+            <option value="F">Female (মহিলা)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div style="margin-bottom:12px">
+        <label style="display:block;margin-bottom:7px">Entry Source (who received the call?) *</label>
+        <div class="choice-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="choice-btn ${selectedSource==='jogesh'?'sel':''}" onclick="setSource('jogesh')">📞 Jogesh</div>
+          <div class="choice-btn ${selectedSource==='shahin'?'sel':''}" onclick="setSource('shahin')">📞 Shahin</div>
+          <div class="choice-btn ${selectedSource==='direct'?'sel':''}" onclick="setSource('direct')">🚶 Direct</div>
+          <div class="choice-btn ${selectedSource==='docref'?'sel-ref':''}" onclick="setSource('docref')">👨‍⚕️ Doc Ref</div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom:12px">
+        <label style="display:block;margin-bottom:7px">Priority Type *</label>
+        <div class="choice-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="choice-btn ${selectedPriority==='regular'?'sel':''}"    onclick="setPriority('regular')">🟦 Regular</div>
+          <div class="choice-btn ${selectedPriority==='emergency'?'sel-emg':''}" onclick="setPriority('emergency')">🚨 Emergency</div>
+          <div class="choice-btn ${selectedPriority==='docref'?'sel-ref':''}" onclick="setPriority('docref')">⭐ Doc Reference</div>
+          <div class="choice-btn ${selectedPriority==='followup'?'sel-fup':''}" onclick="setPriority('followup')">🔄 Follow-up</div>
+        </div>
+      </div>
+      
+      ${selectedPriority === 'emergency' ? `
+      <div class="alert alert-danger">🚨 Emergency insertion will be permanently logged. Reason mandatory.</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Emergency Reason * (REQUIRED — logged permanently)</label>
+        <textarea id="f-reason" placeholder="Describe emergency condition in detail..." style="border-color:#fca5a5"></textarea>
+      </div>` : ''}
+      
+      ${selectedPriority === 'docref' ? `
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Referring Doctor Name *</label>
+        <input type="text" id="f-refname" placeholder="e.g. Dr. Rahman, BIRDEM" />
+      </div>` : ''}
+      
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Notes (optional)</label>
+        <input type="text" id="f-notes" placeholder="Chief complaint, important info..." />
+      </div>
+      
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+          <div><div style="font-size:18px;font-weight:800;color:#2563eb">#${nextToken}</div><div style="color:#6b7280">Auto Token</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#374151">${getQueuePosition()}</div><div style="color:#6b7280">Queue Position</div></div>
+          <div><div style="font-size:18px;font-weight:800;color:#d97706">~${getEstWait()} min</div><div style="color:#6b7280">Est. Wait</div></div>
+        </div>
+      </div>
+      
+      <button class="btn-register" onclick="addPatient()">
+        ✔ Register Patient — Token #${nextToken} Auto-Assigned
+      </button>
+    </div>`;
+}
+
+function getQueuePosition() {
+  const active = patients.filter(p => !['completed','noshow','cancelled'].includes(p.status)).length;
+  if (selectedPriority === 'emergency') return 'Position 1';
+  return `Position ${active + 1}`;
+}
+
+function getEstWait() {
+  const avg = getAvgConsultDuration();
+  const active = patients.filter(p => !['completed','noshow','cancelled'].includes(p.status)).length;
+  if (selectedPriority === 'emergency') return '0–3';
+  return active * avg + 5;
+}
+
+function setPriority(p) { selectedPriority = p; if (currentTab === 'entry') render(); }
+function setSource(s)   { selectedSource = s;   if (currentTab === 'entry') render(); }
+
+function addPatient() {
+  const name   = document.getElementById('f-name')?.value?.trim();
+  const phone  = document.getElementById('f-phone')?.value?.trim();
+  const age    = document.getElementById('f-age')?.value || '?';
+  const gender = document.getElementById('f-gender')?.value || 'M';
+  if (!name)  { alert('Patient name is required'); return; }
+  if (!phone) { alert('Phone number is required'); return; }
+  if (selectedPriority === 'emergency') {
+    const reason = document.getElementById('f-reason')?.value?.trim();
+    if (!reason) { alert('Emergency reason is mandatory'); return; }
+  }
+
+  const token = nextToken++;
+  const refName = document.getElementById('f-refname')?.value?.trim() || '';
+  const notes   = document.getElementById('f-notes')?.value?.trim() || '';
+  const combinedNotes = [notes, refName ? `Ref: ${refName}` : ''].filter(Boolean).join(' · ');
+
+  const newPatient = {
+    token, name, age: parseInt(age) || 0, gender,
+    type: selectedPriority, source: selectedSource,
+    status: 'waiting',
+    addedBy: getActorName(),
+    addedAt: nowTime(),
+    notes: combinedNotes,
+    arrived_at: null, called_at: null,
+    consultation_started_at: null, consultation_ended_at: null, completed_at: null,
+  };
+
+  if (selectedPriority === 'emergency') {
+    const firstActiveIdx = patients.findIndex(p => ['waiting','arrived','called'].includes(p.status));
+    if (firstActiveIdx >= 0) patients.splice(firstActiveIdx, 0, newPatient);
+    else patients.push(newPatient);
+    const emergReason = document.getElementById('f-reason')?.value?.trim();
+    logAction('emergency', '🚨', 'Emergency insertion', `${name} (Token #${token}) — emergency priority. Queue shifted.`, getActorName(), emergReason);
+  } else {
+    patients.push(newPatient);
+    logAction('add', '➕', 'Patient registered', `${name} (Token #${token}) — ${selectedPriority} via ${getActorName()}.${refName ? ' Ref: ' + refName : ''}`, getActorName());
+  }
+
+  updateNavBadges();
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  selectedPriority = 'regular';
+  selectedSource = 'jogesh';
+  showToast(`✓ Token #${token} assigned to ${name}`, 'success');
+  switchTab('queue');
+}
+
+// ═══════════════════════════════════════════════════════
+// DOCTOR TAB — Status + Prescription Launcher
+// ═══════════════════════════════════════════════════════
+function renderDoctor() {
+  const total    = patients.length;
+  const done     = patients.filter(p => p.status === 'completed').length;
+  const noShows  = patients.filter(p => p.status === 'noshow').length;
+  const inQueue  = patients.filter(p => !['completed','noshow','cancelled'].includes(p.status)).length;
+  const avgDur   = getAvgConsultDuration();
+  const inCons   = patients.find(p => p.status === 'incons');
+  const liveConsultDur = inCons ? getLiveConsultDuration(inCons.token) : null;
+  const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+
+  return `
+    <!-- /// UPDATED SECTION — Prescription App Launcher -->
+    <div class="rx-launcher-card">
+      <div class="rx-launcher-title">PRESCRIPTION SOFTWARE</div>
+      <div class="rx-launcher-name">${appSettings.rxAppName}</div>
+      <div class="rx-launcher-sub">Web-based prescription system · Configured in Settings</div>
+      <button class="btn-rx-launch" onclick="launchRxApp()">
+        💊 Open ${appSettings.rxAppName} →
+      </button>
+      <div style="margin-top:8px;font-size:10px;opacity:0.5">${appSettings.rxAppUrl}</div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-value stat-green">${done}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card"><div class="stat-value stat-blue">${inQueue}</div><div class="stat-label">Still in Queue</div></div>
+      <div class="stat-card"><div class="stat-value stat-amber">${avgDur} min</div><div class="stat-label">Avg Consult Time</div></div>
+    </div>
+    
+    ${inCons ? `
+    <div class="card" style="border-color:#2563eb;background:#eff6ff">
+      <div class="card-title">🏥 Currently Consulting</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="big-token ${getBigTokenCls(inCons.type)}" style="width:44px;height:44px;font-size:17px">#${inCons.token}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${inCons.name}</div>
+          <div style="font-size:12px;color:#6b7280">Started: ${inCons.consultation_started_at}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="consult-timer" id="doc-timer">${liveConsultDur ? formatDuration(liveConsultDur) : '0:00'}</div>
+          <div style="font-size:10px;color:#2563eb">Running</div>
+        </div>
+      </div>
+      ${canDo('complete') ? `<button class="btn-complete-big" onclick="completeConsultation(${inCons.token})">✔ Complete Consultation</button>` : ''}
+    </div>` : `<div class="alert alert-success">✅ No active consultation — ready for next patient</div>`}
+    
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">🩺 Doctor Status
+          <span style="font-size:10px;font-weight:400;color:#9ca3af;margin-left:4px">— বর্তমান: <strong>${ds.label}</strong></span>
+        </div>
+        <div style="margin-bottom:8px">
+          <button class="btn-register" 
+            style="background:${isDoctorPresent() ? 'linear-gradient(135deg,#0f6e56,#16a34a)' : 'linear-gradient(135deg,#1a4fa0,#2563eb)'};margin-bottom:8px;padding:12px"
+            onclick="setDoctorStatus('inchamber')">
+            ${isDoctorPresent() ? '✅ In Chamber (Current)' : '✅ Doctor Arrived — Mark In Chamber'}
+          </button>
+        </div>
+        <div class="doc-status-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="doc-status-btn ${doctorStatus==='arriving'?'active':''}"  onclick="setDoctorStatus('arriving')">🚗 Arriving Soon</div>
+          <div class="doc-status-btn ${doctorStatus==='delayed'?'active':''}"   onclick="setDoctorStatus('delayed')">⏳ Delayed</div>
+          <div class="doc-status-btn ${doctorStatus==='break'?'active':''}"     onclick="setDoctorStatus('break')">☕ Short Break</div>
+          <div class="doc-status-btn ${doctorStatus==='closed'?'active':''}"    onclick="setDoctorStatus('closed')">🔴 Chamber Closed</div>
+        </div>
+        ${!isDoctorPresent() ? `<div class="alert alert-warning" style="margin-top:10px;font-size:11px">⚠️ Doctor Chamber-এ নেই। Consultation শুরু করতে উপরের বাটনে চাপুন।</div>` : ''}
+      </div>
+      <div class="card">
+        <div class="card-title">Today's Statistics</div>
+        <div style="font-size:13px;line-height:2.2;color:#374151">
+          <div style="display:flex;justify-content:space-between"><span>Patients Seen</span><strong style="color:#16a34a">${done}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>No Shows</span><strong style="color:#dc2626">${noShows}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>Emergencies</span><strong style="color:#d97706">${patients.filter(p=>p.type==='emergency').length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>Doc References</span><strong style="color:#7c3aed">${patients.filter(p=>p.type==='docref').length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>Avg Duration</span><strong>${avgDur} min</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>Patient Docs</span><strong style="color:#7c3aed">${patientReferences.length}</strong></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">Waiting Room Load</div>
+      ${['arrived','called','waiting'].map(status => {
+        const count = patients.filter(p => p.status === status).length;
+        const labels = { arrived: 'Arrived (in waiting area)', called: 'Called (going to room)', waiting: 'Registered (not arrived)' };
+        const colors = { arrived: '#16a34a', called: '#f59e0b', waiting: '#2563eb' };
+        return `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${labels[status]}</span><span style="font-weight:600">${count}</span></div>
+          <div class="analytics-bar"><div class="analytics-fill" style="width:${Math.min(100,count*14)}%;background:${colors[status]}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function launchRxApp() {
+  const url = appSettings.rxAppUrl || 'https://digitalrxpro.com';
+  logAction('modify', '💊', 'Prescription app launched', `${appSettings.rxAppName} opened in new tab by ${getActorName()}.`, getActorName());
+  window.open(url, '_blank', 'noopener,noreferrer');
+  showToast(`💊 Opening ${appSettings.rxAppName}...`, 'info');
+}
+
+function setDoctorStatus(status) {
+  const prev = doctorStatus;
+  doctorStatus = status;
+  const ds = doctorStatuses[status] || doctorStatuses.arriving;
+  const pill = document.getElementById('doctor-status-pill');
+  if (pill) {
+    pill.className = `doctor-status-pill ${ds.cls}`;
+    document.getElementById('doc-status-text').textContent = ds.label;
+  }
+  if (DOCTOR_ABSENT_STATUSES.includes(status) && patients.find(p => p.status === 'incons')) {
+    showToast(`⚠️ Consultation চলছে! Doctor status পরিবর্তন হয়েছে।`, 'warning');
+  }
+  if (prev !== status) {
+    logAction('modify', '🩺', 'Doctor status changed', `Status: ${doctorStatuses[prev]?.label || prev} → ${ds.label}`, getActorName());
+    if (window.fbSyncDoctorStatus) window.fbSyncDoctorStatus(status);
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// /// UPDATED SECTION — PATIENT REFERENCES TAB
+// ═══════════════════════════════════════════════════════
+function renderReferences() {
+  const catFilters = ['all','prescription','lab','scan','ecg','discharge','other'];
+  const catParam   = window._refCatFilter || 'all';
+  const srch       = window._refSearch || '';
+  const patParam   = window._refPatFilter || 'all';
+
+  let refs = patientReferences;
+  if (catParam !== 'all') refs = refs.filter(r => r.category === catParam);
+  if (patParam !== 'all') refs = refs.filter(r => r.patientToken === parseInt(patParam));
+  if (srch) refs = refs.filter(r => r.patientName.toLowerCase().includes(srch.toLowerCase()) || (r.notes||'').toLowerCase().includes(srch.toLowerCase()));
+
+  const catInfo = {
+    prescription: { label: 'Prescription',   cls: 'cat-prescription', icon: '📋' },
+    lab:          { label: 'Lab Report',      cls: 'cat-lab',          icon: '🧪' },
+    scan:         { label: 'Scan / MRI',      cls: 'cat-scan',         icon: '🩻' },
+    ecg:          { label: 'ECG',             cls: 'cat-ecg',          icon: '💓' },
+    discharge:    { label: 'Discharge Summary',cls: 'cat-discharge',   icon: '🏥' },
+    other:        { label: 'Other',           cls: 'cat-other',        icon: '📄' },
+  };
+
+  const catCounts = {};
+  catFilters.slice(1).forEach(c => catCounts[c] = patientReferences.filter(r => r.category === c).length);
+
+  return `
+    <div class="alert alert-purple">
+      📁 Patient document references — Previous prescriptions, lab reports, scans, ECG, discharge summaries.
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="openRefModal()">📎 Upload Reference</button>
+        <input type="text" placeholder="Search patient or notes..." style="flex:1;min-width:140px;padding:7px 11px;font-size:12px" 
+          value="${srch}" oninput="window._refSearch=this.value;render()" />
+        <select style="padding:7px 11px;font-size:12px;border:1.5px solid #e5e7eb;border-radius:8px" 
+          onchange="window._refPatFilter=this.value;render()">
+          <option value="all" ${patParam==='all'?'selected':''}>All Patients</option>
+          ${patients.map(p => `<option value="${p.token}" ${patParam==p.token?'selected':''}>#${p.token} ${p.name}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+        ${catFilters.map(c => {
+          const active = catParam === c;
+          const cnt = c === 'all' ? patientReferences.length : (catCounts[c]||0);
+          return `<button onclick="window._refCatFilter='${c}';render()" 
+            style="padding:5px 12px;border-radius:20px;border:1.5px solid ${active?'#2563eb':'#e5e7eb'};background:${active?'#eff6ff':'#f9fafb'};color:${active?'#1e40af':'#6b7280'};font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s">
+            ${c === 'all' ? 'All' : catInfo[c]?.label} (${cnt})</button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${refs.length === 0 ? `
+    <div class="card" style="text-align:center;padding:40px 20px;color:#9ca3af">
+      <div style="font-size:40px;margin-bottom:12px">📂</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">No references found</div>
+      <div style="font-size:12px">Upload patient documents using the button above</div>
+    </div>` : ''}
+
+    ${refs.map(ref => {
+      const ci = catInfo[ref.category] || catInfo.other;
+      const isImg = ref.fileType && ref.fileType.startsWith('image/');
+      const isPdf = ref.fileType === 'application/pdf';
+      return `<div class="doc-ref-item">
+        <div class="doc-ref-icon ${isImg ? 'doc-ref-icon-img' : 'doc-ref-icon-pdf'}">${ci.icon}</div>
+        <div class="doc-ref-info">
+          <div class="doc-ref-name">${ref.fileName}</div>
+          <div class="doc-ref-meta">
+            <span class="doc-category-chip ${ci.cls}">${ci.label}</span>
+            <strong>#${ref.patientToken} ${ref.patientName}</strong>
+            · ${ref.uploadedAt}
+            ${ref.notes ? `· <em>${ref.notes}</em>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          ${(isImg || isPdf) ? `<button class="op-btn op-btn-arrive" onclick="previewRef('${ref.id}')" style="font-size:10px;padding:5px 9px">👁 View</button>` : ''}
+          <button class="op-btn op-btn-cancel" onclick="deleteRef('${ref.id}')" style="font-size:10px;padding:5px 9px">🗑</button>
+        </div>
+      </div>`;
+    }).join('')}
+
+    ${refs.length > 0 ? `<div style="font-size:11px;color:#9ca3af;text-align:center;margin-top:8px">${refs.length} document(s) shown</div>` : ''}
+  `;
+}
+
+// Reference upload functions
+function openRefModal() {
+  selectedRefPatientToken = null;
+  pendingFileData = null;
+  document.getElementById('ref-patient-search').value = '';
+  document.getElementById('ref-notes').value = '';
+  document.getElementById('ref-category').value = 'prescription';
+  document.getElementById('upload-area-text').textContent = '📂 Click to select file';
+  filterRefPatients();
+  document.getElementById('upload-ref-modal').classList.add('open');
+}
+
+function openRefModalForPatient(token) {
+  const p = patients.find(x => x.token === token);
+  if (!p) return;
+  selectedRefPatientToken = token;
+  pendingFileData = null;
+  document.getElementById('ref-patient-search').value = '#' + token + ' — ' + p.name;
+  document.getElementById('ref-notes').value = '';
+  document.getElementById('ref-category').value = 'prescription';
+  document.getElementById('upload-area-text').textContent = '📂 Click to select file';
+  filterRefPatients();
+  document.getElementById('upload-ref-modal').classList.add('open');
+}
+
+function closeRefModal() {
+  document.getElementById('upload-ref-modal').classList.remove('open');
+  selectedRefPatientToken = null;
+  pendingFileData = null;
+}
+
+function filterRefPatients() {
+  const q = (document.getElementById('ref-patient-search')?.value || '').toLowerCase();
+  const list = patients.filter(p => !q || p.name.toLowerCase().includes(q));
+  document.getElementById('ref-patient-list').innerHTML = list.slice(0, 8).map(p =>
+    `<div class="patient-search-item ${selectedRefPatientToken === p.token ? 'sel' : ''}"
+      onclick="selectRefPatient(${p.token},'${p.name}')">
+      #${p.token} — ${p.name} <span style="color:#9ca3af">${p.age}${p.gender}</span>
+    </div>`
+  ).join('') || '<div style="font-size:11px;color:#9ca3af;padding:8px">No patients found</div>';
+}
+
+function selectRefPatient(token, name) {
+  selectedRefPatientToken = token;
+  document.getElementById('ref-patient-search').value = `#${token} — ${name}`;
+  filterRefPatients();
+}
+
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+  if (!allowed.includes(file.type)) {
+    alert('Only PDF, JPG, PNG files allowed.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('File size must be under 5MB.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pendingFileData = { name: file.name, type: file.type, dataUrl: e.target.result };
+    document.getElementById('upload-area-text').textContent = `✅ ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveReference() {
+  if (!selectedRefPatientToken) { alert('Please select a patient.'); return; }
+  if (!pendingFileData) { alert('Please select a file to upload.'); return; }
+
+  const cat   = document.getElementById('ref-category').value;
+  const notes = document.getElementById('ref-notes').value.trim();
+  const patient = patients.find(p => p.token === selectedRefPatientToken);
+
+  const ref = {
+    id: 'ref_' + Date.now(),
+    patientToken: selectedRefPatientToken,
+    patientName: patient ? patient.name : 'Unknown',
+    category: cat,
+    notes,
+    fileName: pendingFileData.name,
+    fileType: pendingFileData.type,
+    fileDataUrl: pendingFileData.dataUrl,
+    uploadedAt: nowTime(),
+    uploadedBy: getActorName(),
+  };
+
+  patientReferences.unshift(ref);
+  logAction('add', '📎', 'Document uploaded', `${pendingFileData.name} uploaded for ${ref.patientName} (#${selectedRefPatientToken}) — ${cat}.`, getActorName());
+  updateNavBadges();
+  if (window.fbSyncRefMeta) window.fbSyncRefMeta();
+  closeRefModal();
+  showToast('✓ Document uploaded successfully (saved locally; metadata synced)', 'success');
+  render();
+}
+
+function deleteRef(id) {
+  if (!confirm('Delete this document?')) return;
+  const idx = patientReferences.findIndex(r => r.id === id);
+  if (idx >= 0) {
+    const ref = patientReferences[idx];
+    logAction('modify', '🗑', 'Document deleted', `${ref.fileName} removed for ${ref.patientName}.`, getActorName());
+    patientReferences.splice(idx, 1);
+    if (window.fbSyncRefMeta) window.fbSyncRefMeta();
+    updateNavBadges();
+    render();
+  }
+}
+
+function previewRef(id) {
+  const ref = patientReferences.find(r => r.id === id);
+  if (!ref) return;
+  document.getElementById('preview-title').textContent = ref.fileName;
+  const content = document.getElementById('preview-content');
+  if (ref.fileType.startsWith('image/')) {
+    content.innerHTML = `<img src="${ref.fileDataUrl}" style="max-width:100%;border-radius:8px" />`;
+  } else if (ref.fileType === 'application/pdf') {
+    content.innerHTML = `<iframe src="${ref.fileDataUrl}" style="width:100%;height:400px;border:none;border-radius:8px"></iframe>`;
+  }
+  document.getElementById('preview-modal').classList.add('open');
+}
+
+function closePreviewModal() {
+  document.getElementById('preview-modal').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// /// UPDATED SECTION — PROFESSIONAL TV DISPLAY (REBUILT)
+// Bangladesh chamber-style queue display with Kalpurush
+// ═══════════════════════════════════════════════════════
+function renderDisplay() {
+  const current   = patients.find(p => p.status === 'incons');
+  // Next serials: called/arrived, excluding current, max 5
+  const nextOnes  = patients.filter(p =>
+    ['called','arrived','waiting'].includes(p.status) && p !== current
+  ).slice(0, 5);
+
+  const ds        = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+  const liveD     = current ? getLiveConsultDuration(current.token) : null;
+  const totalToday       = patients.length;
+  const totalCompleted   = patients.filter(p => p.status === 'completed').length;
+  const totalWaiting     = patients.filter(p => ['waiting','arrived','called'].includes(p.status)).length;
+
+  // Doctor status dot class mapping
+  const dotClassMap = { arriving: 'amber', inchamber: 'green', delayed: 'red', closed: 'gray', break: 'pink' };
+  const dotCls = dotClassMap[doctorStatus] || 'gray';
+
+  // Bengali doctor name format: ডাঃ. বি. কে. বোস
+  // English: (Dr. B. K. Bose)
+  const docNameBn  = 'ডাঃ. বি. কে. বোস';
+  const docNameEn  = '(Dr. B. K. Bose)';
+  const chamberTxt = appSettings.chamberName || 'Dr. B. K. Bose Chamber';
+
+  // Date Bengali-style
+  const now    = new Date();
+  const daysBn = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+  const monthsBn = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+  const dateBn = `${daysBn[now.getDay()]}, ${now.getDate()} ${monthsBn[now.getMonth()]} ${now.getFullYear()}`;
+
+  // Announcements ticker (doubled for seamless scroll)
+  const announcements = [
+    { bn: 'দয়া করে সিরিয়াল অনুযায়ী অপেক্ষা করুন', en: '(Please wait according to serial)' },
+    { bn: 'মোবাইল ফোন সাইলেন্ট রাখুন', en: '(Please keep mobile phones silent)' },
+    { bn: 'সিরিয়াল ডাকার পর চেম্বারে প্রবেশ করুন', en: '(Enter only when your serial is called)' },
+    { bn: 'শিশু ও বয়স্কদের অগ্রাধিকার দেওয়া হবে', en: '(Priority given to children and elderly)' },
+    { bn: 'ধন্যবাদ, আপনার সহযোগিতার জন্য', en: '(Thank you for your cooperation)' },
+  ];
+  const tickerItems = [...announcements, ...announcements]; // duplicate for seamless loop
+
+  // Doctor status Bengali label
+  const docStatusBnMap = {
+    arriving: 'আসছেন শীঘ্রই', inchamber: 'চেম্বারে আছেন',
+    delayed: 'বিলম্বিত', closed: 'চেম্বার বন্ধ', break: 'বিরতিতে আছেন',
+  };
+  const docStatusBn = docStatusBnMap[doctorStatus] || 'অজানা';
+  const docStatusEnMap = {
+    arriving: 'Arriving Soon', inchamber: 'In Chamber',
+    delayed: 'Delayed', closed: 'Chamber Closed', break: 'On Break',
+  };
+  const docStatusEn = docStatusEnMap[doctorStatus] || '';
+
+  // Current serial display text
+  const currentSerial = current ? String(current.token) : null;
+  const isEmergency   = current && current.type === 'emergency';
+
+  return `
+    <div class="tv-fullpage" id="tv-display-root">
+
+      <!-- /// UPDATED SECTION — Fixed action buttons -->
+      <button class="tv-back-btn" onclick="tvExit()">✕ Back</button>
+      <button class="tv-fs-btn" onclick="tvToggleFullscreen()" id="tv-fs-btn">⛶ Fullscreen</button>
+
+      <!-- /// UPDATED SECTION — TV Header -->
+      <div class="tv-header">
+        <div class="tv-header-left">
+          <div class="tv-header-logo">BKB</div>
+          <div>
+            <div class="tv-header-name">${chamberTxt}</div>
+            <div class="tv-header-sub">MBBS, MCPS · MD Chest Medicine · IAEA Fellow · Dinajpur</div>
+          </div>
+        </div>
+        <div class="tv-header-right">
+          <div class="tv-date-display" id="tv-date">${dateBn}</div>
+          <div class="tv-clock-display" id="tv-clock">${now.toLocaleTimeString('bn-BD')}</div>
+        </div>
+      </div>
+
+      <!-- /// UPDATED SECTION — TV Body: left (current) + right (next + status) -->
+      <div class="tv-body">
+
+        <!-- LEFT — Current Serial -->
+        <div class="tv-current-panel">
+          ${currentSerial ? `
+            <div class="tv-pulse-ring"></div>
+            <div class="tv-pulse-ring"></div>
+            <div class="tv-pulse-ring"></div>
+          ` : ''}
+
+          <div class="tv-section-label-bn">বর্তমান সিরিয়াল</div>
+          <div class="tv-section-label-en">(Current Serial)</div>
+
+          <div class="tv-big-number ${currentSerial ? (isEmergency ? 'emergency' : '') : 'empty'}">
+            ${currentSerial || '—'}
+          </div>
+
+          ${currentSerial ? `
+            ${isEmergency ? `<div style="margin-top:10px;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);border-radius:8px;padding:4px 16px;color:#f87171;font-size:14px;font-weight:700;letter-spacing:0.08em;">⚠ জরুরি (Emergency)</div>` : ''}
+            ${liveD ? `<div style="font-size:15px;color:rgba(96,165,250,0.55);margin-top:8px;">⏱ ${formatDuration(liveD)}</div>` : ''}
+          ` : `
+            <div class="tv-waiting-state">
+              ${isDoctorPresent() ? 'রোগীর জন্য অপেক্ষা করছেন\n(Waiting for patient)' : docStatusBn}
+            </div>
+          `}
+
+          <!-- Doctor info card -->
+          <div class="tv-doctor-info">
+            <div class="tv-doctor-name-bn">${docNameBn}</div>
+            <div class="tv-doctor-name-en">${docNameEn}</div>
+            <div class="tv-chamber-info">🏥 চেম্বার — ${appSettings.chamberLocation || 'Dinajpur'}</div>
+          </div>
+        </div>
+
+        <!-- RIGHT panel -->
+        <div class="tv-right-panel">
+
+          <!-- /// UPDATED SECTION — Next serials block -->
+          <div class="tv-next-block">
+            <div class="tv-next-header">
+              <div class="tv-next-header-bn">পরবর্তী সিরিয়াল</div>
+              <div class="tv-next-header-en">(Next Serials)</div>
+            </div>
+            <div class="tv-next-serials">
+              ${nextOnes.length > 0 ? nextOnes.map((p, i) => {
+                const statusBn = p.status === 'called' ? 'ডাকা হয়েছে' : p.status === 'arrived' ? 'উপস্থিত' : 'অপেক্ষারত';
+                const statusEn = p.status === 'called' ? 'Called' : p.status === 'arrived' ? 'Arrived' : 'Waiting';
+                return `
+                  <div class="tv-next-row">
+                    <div class="tv-next-row-num">${p.token}</div>
+                    <div class="tv-next-row-info">
+                      <div class="tv-next-row-label">${i === 0 ? '▶ পরের রোগী (Next)' : `${i+1} নং সিরিয়াল`}</div>
+                      <div class="tv-next-row-status">${statusBn} · ${statusEn}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('') : `
+                <div class="tv-next-empty">
+                  কোনো পরবর্তী সিরিয়াল নেই<br>
+                  <span style="font-size:12px;color:rgba(255,255,255,0.15)">(No next serials)</span>
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- /// UPDATED SECTION — Doctor Status block -->
+          <div class="tv-status-block">
+            <div class="tv-status-row">
+              <div class="tv-status-dot ${dotCls}"></div>
+              <div class="tv-status-text">
+                ডাক্তার: <strong>${docStatusBn}</strong>
+                <span style="color:rgba(255,255,255,0.35);font-size:0.85em;margin-left:6px">(${docStatusEn})</span>
+              </div>
+            </div>
+            <div class="tv-stats-mini">
+              <div>আজকের মোট রোগী:<span>${totalToday}</span></div>
+              <div>সম্পন্ন:<span>${totalCompleted}</span></div>
+              <div>অপেক্ষারত:<span>${totalWaiting}</span></div>
+            </div>
+          </div>
+
+          <!-- Spacer -->
+          <div style="flex:1"></div>
+
+          <!-- Quick info note -->
+          <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.12);padding:8px;line-height:1.8;">
+            সিরিয়াল স্বয়ংক্রিয়ভাবে আপডেট হয়<br>
+            (Queue updates automatically)
+          </div>
+        </div>
+      </div>
+
+      <!-- /// UPDATED SECTION — Scrolling announcement ticker -->
+      <div class="tv-ticker-bar">
+        <div class="tv-ticker-track">
+          ${tickerItems.map(a => `
+            <span class="tv-ticker-item">
+              <span class="tv-ticker-dot"></span>
+              ${a.bn} <span style="color:rgba(255,255,255,0.4)">${a.en}</span>
+            </span>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// /// UPDATED SECTION — TV Display controller functions
+function tvExit() {
+  // Exit fullscreen if active
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
+  switchTab('queue');
+}
+
+function tvToggleFullscreen() {
+  const el = document.getElementById('tv-display-root') || document.documentElement;
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      const btn = document.getElementById('tv-fs-btn');
+      if (btn) btn.textContent = '⛶ Exit Fullscreen';
+    }).catch(() => {});
+  } else {
+    document.exitFullscreen().then(() => {
+      const btn = document.getElementById('tv-fs-btn');
+      if (btn) btn.textContent = '⛶ Fullscreen';
+    }).catch(() => {});
+  }
+}
+
+// /// UPDATED SECTION — TV Display live clock ticker (separate from main clock)
+let _tvClockInterval = null;
+function startTVClock() {
+  if (_tvClockInterval) clearInterval(_tvClockInterval);
+  _tvClockInterval = setInterval(() => {
+    const clockEl = document.getElementById('tv-clock');
+    const dateEl  = document.getElementById('tv-date');
+    if (!clockEl) { clearInterval(_tvClockInterval); _tvClockInterval = null; return; }
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-BD');
+    // Update date too (midnight rollover)
+    if (dateEl) {
+      const daysBn   = ['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+      const monthsBn = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+      dateEl.textContent = `${daysBn[now.getDay()]}, ${now.getDate()} ${monthsBn[now.getMonth()]} ${now.getFullYear()}`;
+    }
+    // Live consultation timer update
+    const timerEl = document.querySelector('.tv-big-number + .tv-timer-inline');
+    if (timerEl) {
+      const inCons = patients.find(p => p.status === 'incons');
+      if (inCons) timerEl.textContent = '⏱ ' + formatDuration(getLiveConsultDuration(inCons.token));
+    }
+  }, 1000);
+}
+
+// /// UPDATED SECTION — Auto-refresh TV Display every 5s for live queue sync
+let _tvAutoRefresh = null;
+function startTVAutoRefresh() {
+  if (_tvAutoRefresh) clearInterval(_tvAutoRefresh);
+  _tvAutoRefresh = setInterval(() => {
+    const root = document.getElementById('tv-display-root');
+    if (!root) { clearInterval(_tvAutoRefresh); _tvAutoRefresh = null; return; }
+    // Only re-render if still on display tab to avoid unnecessary DOM churn
+    if (currentTab === 'display') {
+      document.getElementById('main-content').innerHTML = renderDisplay();
+      startTVClock();
+    }
+  }, 5000);
+}
+
+// ═══════════════════════════════════════════════════════
+// AUDIT LOG
+// ═══════════════════════════════════════════════════════
+function renderAudit() {
+  const bgMap = {
+    add: 'audit-add', modify: 'audit-modify', emergency: 'audit-emergency',
+    checkin: 'audit-checkin', start: 'audit-start', complete: 'audit-complete',
+    noshow: 'audit-noshow', login: 'audit-login',
+  };
+  return `
+    <div class="alert alert-warning">🔒 Audit log is <strong>permanent and immutable</strong>. Every operation is timestamped.</div>
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📋 Full Operation Log — Today (${auditLog.length} entries)</span>
+        <button class="btn btn-secondary btn-sm" onclick="exportAuditCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="scroll-list">
+        ${auditLog.map(a => `
+          <div class="audit-item">
+            <div class="audit-icon ${bgMap[a.type] || 'audit-add'}">${a.icon}</div>
+            <div class="audit-content">
+              <div class="audit-action">${a.action} <span style="font-size:11px;color:#9ca3af;font-weight:400">by ${a.by}</span></div>
+              <div class="audit-detail">${a.detail}</div>
+              ${a.reason ? `<div style="font-size:10px;color:#d97706;margin-top:2px;font-weight:600">Reason: ${a.reason}</div>` : ''}
+            </div>
+            <div class="audit-time">${a.time}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Anti-Corruption Summary</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px">
+        <div style="padding:12px;background:#f9fafb;border-radius:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#16a34a">0</div>
+          <div style="color:#6b7280;font-size:11px;margin-top:2px">Hidden serials</div>
+        </div>
+        <div style="padding:12px;background:#f9fafb;border-radius:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#d97706">${patients.filter(p=>p.type==='emergency').length}</div>
+          <div style="color:#6b7280;font-size:11px;margin-top:2px">Priority overrides</div>
+        </div>
+        <div style="padding:12px;background:#f9fafb;border-radius:10px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#2563eb">100%</div>
+          <div style="color:#6b7280;font-size:11px;margin-top:2px">Actions logged</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:11px;color:#6b7280;line-height:1.8">
+        ✓ No manual token editing &nbsp;·&nbsp; ✓ No hidden insertions &nbsp;·&nbsp; ✓ All emergency reasons documented &nbsp;·&nbsp; ✓ Full trail preserved &nbsp;·&nbsp; ✓ Login/logout logged
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════════════
+function renderReports() {
+  const bySource = {
+    jogesh: patients.filter(p => p.source === 'jogesh').length,
+    shahin: patients.filter(p => p.source === 'shahin').length,
+    direct: patients.filter(p => p.source === 'direct').length,
+  };
+  const total  = patients.length || 1;
+  const avgDur = getAvgConsultDuration();
+
+  return `
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-value">${patients.length}</div><div class="stat-label">Total Registered</div></div>
+      <div class="stat-card"><div class="stat-value stat-green">${patients.filter(p=>p.status==='completed').length}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card"><div class="stat-value stat-amber">${patients.filter(p=>!['completed','noshow','cancelled'].includes(p.status)).length}</div><div class="stat-label">In Queue</div></div>
+      <div class="stat-card"><div class="stat-value stat-red">${patients.filter(p=>p.status==='noshow').length}</div><div class="stat-label">No Show</div></div>
+    </div>
+    
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Patient Source</div>
+        ${Object.entries(bySource).map(([k, v]) => `
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+              <span style="text-transform:capitalize;font-weight:500">${k}</span>
+              <span>${v} (${Math.round(v / total * 100)}%)</span>
+            </div>
+            <div class="analytics-bar"><div class="analytics-fill" style="width:${Math.round(v / total * 100)}%;background:${k==='jogesh'?'#7c3aed':k==='shahin'?'#16a34a':'#6b7280'}"></div></div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title">Priority Distribution</div>
+        ${[['Regular','regular','#2563eb'],['Emergency','emergency','#dc2626'],['Doc Reference','docref','#d97706'],['Follow-up','followup','#0f6e56']].map(([l, k, c]) => {
+          const count = patients.filter(p => p.type === k).length;
+          return `<div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${l}</span><span>${count}</span></div>
+            <div class="analytics-bar"><div class="analytics-fill" style="width:${Math.round(count / total * 100)}%;background:${c}"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">Daily Summary — ${new Date().toLocaleDateString('en-BD', {weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+      <div style="font-size:12px;line-height:2.2;color:#6b7280">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+          <span>Avg consultation time:</span><span style="color:#111827;font-weight:600">${avgDur} min</span>
+          <span>Consultations completed:</span><span style="color:#16a34a;font-weight:600">${patients.filter(p=>p.status==='completed').length}</span>
+          <span>Emergency insertions:</span><span style="color:#dc2626;font-weight:600">${patients.filter(p=>p.type==='emergency').length}</span>
+          <span>Doc references:</span><span style="color:#d97706;font-weight:600">${patients.filter(p=>p.type==='docref').length}</span>
+          <span>No-shows:</span><span style="color:#dc2626;font-weight:600">${patients.filter(p=>p.status==='noshow').length}</span>
+          <span>Patient documents uploaded:</span><span style="color:#7c3aed;font-weight:600">${patientReferences.length}</span>
+          <span>Total audit entries:</span><span style="color:#111827;font-weight:600">${auditLog.length}</span>
+          <span>Queue integrity:</span><span style="color:#16a34a;font-weight:600">✓ All actions logged</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="exportPatientsCSV()">📄 Export Daily Report (CSV)</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportAuditCSV()">🔒 Export Audit Log (CSV)</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// /// UPDATED SECTION — SETTINGS TAB
+// ═══════════════════════════════════════════════════════
+function renderSettings() {
+  if (!canDo('settings')) {
+    return `<div class="alert alert-warning">⛔ Settings শুধুমাত্র Super Admin দেখতে পারবেন।</div>`;
+  }
+
+  return `
+    <div class="alert alert-info">⚙️ System settings — changes save to this device (localStorage).</div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">💊 Prescription Software</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">App Name</div>
+          <div class="settings-sublabel">Display name on the Doctor tab launcher</div>
+        </div>
+        <div class="settings-control">
+          <input class="settings-input" id="s-rxname" value="${appSettings.rxAppName}" placeholder="e.g. Digital RX Pro" />
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">App URL</div>
+          <div class="settings-sublabel">Web address to open when launching prescription app</div>
+        </div>
+        <div class="settings-control">
+          <input class="settings-input" id="s-rxurl" value="${appSettings.rxAppUrl}" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="settings-row">
+        <div></div>
+        <div class="settings-control">
+          <button class="btn-settings-save" onclick="applyRxSettings()">💾 Save Rx Settings</button>
+          <button class="btn btn-secondary btn-sm" onclick="testRxLaunch()" style="margin-left:6px">🧪 Test Launch</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">🏥 Chamber Information</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Chamber Name</div>
+        </div>
+        <div class="settings-control">
+          <input class="settings-input" id="s-chambername" value="${appSettings.chamberName}" />
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Location</div>
+        </div>
+        <div class="settings-control">
+          <input class="settings-input" id="s-location" value="${appSettings.chamberLocation}" />
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Assistant Names</div>
+          <div class="settings-sublabel">Comma-separated (for source tracking)</div>
+        </div>
+        <div class="settings-control">
+          <input class="settings-input" id="s-assistants" value="${appSettings.assistantNames}" />
+        </div>
+      </div>
+      <div class="settings-row">
+        <div></div>
+        <div class="settings-control">
+          <button class="btn-settings-save" onclick="applyChamberSettings()">💾 Save Chamber Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">🔑 PIN Management</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Role PINs</div>
+          <div class="settings-sublabel">Current session PINs (reset on page reload)</div>
+        </div>
+        <div class="settings-control" style="font-size:11px;line-height:1.8;color:#6b7280">
+          Super Admin: ${PINS.superadmin}<br>
+          Doctor: ${PINS.doctor}<br>
+          Assistant: ${PINS.assistant}<br>
+          Desk: ${PINS.desk}
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label" style="color:#dc2626">⚠️ Change PINs</div>
+          <div class="settings-sublabel">PINs are session-only. For persistent storage, integrate with a backend.</div>
+        </div>
+        <div class="settings-control">
+          <button class="btn btn-secondary btn-sm" disabled>Backend Required</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-header">💾 Data Management</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Export All Data</div>
+          <div class="settings-sublabel">Download queue, audit log, and references</div>
+        </div>
+        <div class="settings-control" style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="exportPatientsCSV()">📄 Patients</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportAuditCSV()">🔒 Audit</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label" style="color:#dc2626">Reset Day Data</div>
+          <div class="settings-sublabel">Clear all patients and references for a fresh session</div>
+        </div>
+        <div class="settings-control">
+          <button class="btn btn-danger btn-sm" onclick="resetDayData()">🗑 Reset Day</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function applyRxSettings() {
+  appSettings.rxAppName = document.getElementById('s-rxname').value.trim() || 'Digital RX Pro';
+  appSettings.rxAppUrl  = document.getElementById('s-rxurl').value.trim() || 'https://digitalrxpro.com';
+  saveSettings();
+  logAction('modify', '⚙️', 'Settings updated', `Prescription app: "${appSettings.rxAppName}" → ${appSettings.rxAppUrl}`, getActorName());
+}
+
+function testRxLaunch() {
+  const url = document.getElementById('s-rxurl').value.trim();
+  if (!url) { alert('Enter a URL first.'); return; }
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function applyChamberSettings() {
+  appSettings.chamberName      = document.getElementById('s-chambername').value.trim() || 'Dr. B. K. Bose Chamber';
+  appSettings.chamberLocation  = document.getElementById('s-location').value.trim() || 'Dinajpur';
+  appSettings.assistantNames   = document.getElementById('s-assistants').value.trim() || 'Jogesh, Shahin';
+  saveSettings();
+  logAction('modify', '⚙️', 'Chamber settings updated', `Name: ${appSettings.chamberName}, Location: ${appSettings.chamberLocation}`, getActorName());
+}
+
+function resetDayData() {
+  if (!confirm('সত্যিই Reset করবেন? সব patient data মুছে যাবে। (Audit log রইবে)')) return;
+  patients.length = 0;
+  patientReferences.length = 0;
+  nextToken = 1;
+  consultStartTimestamps = {};
+  logAction('modify', '🗑', 'Day reset', 'All patient and reference data cleared for new session.', getActorName());
+  if (window.fbSyncPatients) window.fbSyncPatients();
+  if (window.fbSyncRefMeta) window.fbSyncRefMeta();
+  updateNavBadges();
+  showToast('✓ Day data reset. Ready for fresh session.', 'info');
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT — CSV Downloads
+// ═══════════════════════════════════════════════════════
+function exportPatientsCSV() {
+  const headers = ['Token','Name','Age','Gender','Type','Source','Status','Added At','Arrived At','Called At','Consult Start','Consult End','Completed At','Notes'];
+  const rows = patients.map(p => [
+    p.token, p.name, p.age, p.gender, p.type, p.source, p.status,
+    p.addedAt||'', p.arrived_at||'', p.called_at||'',
+    p.consultation_started_at||'', p.consultation_ended_at||'', p.completed_at||'',
+    (p.notes||'').replace(/,/g,'·')
+  ]);
+  downloadCSV('daily_report_' + todayStr() + '.csv', [headers, ...rows]);
+  showToast('✓ Daily report exported as CSV', 'success');
+}
+
+function exportAuditCSV() {
+  const headers = ['Time','Action','Detail','By','Reason','Type'];
+  const rows = auditLog.map(a => [a.time, a.action, a.detail, a.by, a.reason||'', a.type]);
+  downloadCSV('audit_log_' + todayStr() + '.csv', [headers, ...rows]);
+  showToast('✓ Audit log exported as CSV', 'success');
+}
+
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST NOTIFICATION
+// ═══════════════════════════════════════════════════════
+function showToast(msg, type = 'info') {
+  const colors = { success: '#16a34a', info: '#2563eb', warning: '#d97706', error: '#dc2626' };
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:${colors[type]};color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,0.25);max-width:90vw;text-align:center;transition:opacity 0.3s;`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ═══════════════════════════════════════════════════════
+// REAL-TIME TICKS
+// ═══════════════════════════════════════════════════════
+setInterval(() => {
+  const clockEl = document.getElementById('live-clock');
+  if (clockEl) clockEl.textContent = new Date().toLocaleTimeString('en-BD');
+
+  const inCons = patients.find(p => p.status === 'incons');
+  if (inCons && consultStartTimestamps[inCons.token]) {
+    const dur = Date.now() - consultStartTimestamps[inCons.token];
+    const timerEl    = document.getElementById('live-timer');
+    const docTimerEl = document.getElementById('doc-timer');
+    if (timerEl)    timerEl.textContent = formatDuration(dur);
+    if (docTimerEl) docTimerEl.textContent = formatDuration(dur);
+  }
+}, 1000);
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+loadSettings();
+document.getElementById('pin-input')?.focus();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+# fly.toml — Dr. BKB Chamber Queue
+# fly.io free tier configuration
+
+app = "bkb-chamber"          # ← এই নাম unique হতে হবে, change করুন যদি taken থাকে
+primary_region = "sin"       # Singapore — Bangladesh থেকে closest
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+
+# Persistent volume for PocketBase data
+[mounts]
+  source      = "pb_data"
+  destination = "/pb/pb_data"
+
+[[services]]
+  protocol    = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type       = "connections"
+    hard_limit = 50
+    soft_limit = 30
+
+  [[services.tcp_checks]]
+    interval    = "15s"
+    timeout     = "2s"
+    grace_period = "5s"
+
+  [[services.http_checks]]
+    interval   = "30s"
+    timeout    = "5s"
+    grace_period = "10s"
+    method     = "GET"
+    path       = "/api/health"
+
+# Free tier: 1 shared CPU, 256MB RAM
+[[vm]]
+  cpu_kind = "shared"
+  cpus     = 1
+  memory_mb = 256
