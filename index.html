@@ -819,8 +819,8 @@
 // ════════════════════════════════════════════════════════
 // SUPABASE CONFIG — supabase.com → Project Settings → API
 // ════════════════════════════════════════════════════════
-const SUPABASE_URL     = 'https://fmnhutxxxasgulwzohto.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO...';
+const SUPABASE_URL     = 'https://fmnhutxxxasgulwzohto.supabase.co';       // https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZtbmh1dHh4eGFzZ3Vsd3pvaHRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMjM5ODQsImV4cCI6MjA5NDY5OTk4NH0.WhrtSCr77lxiC5x8wfWCQlkOTy7SlAv1zN906UzHM0o'; // anon/public key
 
 const _supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -881,29 +881,35 @@ async function supaLoadState() {
 }
 
 // ── realtime subscription ──
+// ── Polling every 3s (replaces WebSocket for reliability) ──
+let _lastUpdated = null;
 async function supaSubscribe() {
-  const sid = await getSession();
-  _supa.channel('sessions-changes')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: 'id=eq.' + sid },
-      payload => {
-        const d = payload.new;
-        patients.length = 0;
-        (d.patients || []).forEach(p => { if(p) patients.push(p); });
-        if (d.next_token > nextToken) nextToken = d.next_token;
-        if (d.doctor_status && d.doctor_status !== doctorStatus) {
-          doctorStatus = d.doctor_status;
-          const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
-          const pill = document.getElementById('doctor-status-pill');
-          if (pill) { pill.className = 'doctor-status-pill ' + ds.cls; }
-          const txt = document.getElementById('doc-status-text');
-          if (txt) txt.textContent = ds.label;
-        }
-        Object.assign(consultStartTimestamps, d.consult_ts || {});
-        updateNavBadges();
-        if (['queue','doctor','display','references'].includes(currentTab)) render();
-        setSyncStatus(true);
-      })
-    .subscribe();
+  setInterval(async () => {
+    try {
+      const sid = await getSession();
+      if (!sid) return;
+      const { data, error } = await _supa.from('sessions').select('*').eq('id', sid).single();
+      if (error || !data) return;
+      const snap = JSON.stringify(data);
+      if (snap === _lastUpdated) return;
+      _lastUpdated = snap;
+      patients.length = 0;
+      (data.patients || []).forEach(p => { if(p) patients.push(p); });
+      if (data.next_token > nextToken) nextToken = data.next_token;
+      if (data.doctor_status && data.doctor_status !== doctorStatus) {
+        doctorStatus = data.doctor_status;
+        const ds = doctorStatuses[doctorStatus] || doctorStatuses.arriving;
+        const pill = document.getElementById('doctor-status-pill');
+        if (pill) { pill.className = 'doctor-status-pill ' + ds.cls; }
+        const txt = document.getElementById('doc-status-text');
+        if (txt) txt.textContent = ds.label;
+      }
+      Object.assign(consultStartTimestamps, data.consult_ts || {});
+      updateNavBadges();
+      if (['queue','doctor','display','references'].includes(currentTab)) render();
+      setSyncStatus(true);
+    } catch(e) { setSyncStatus(false, 'Offline'); }
+  }, 3000);
 }
 
 // ── debounced write ──
